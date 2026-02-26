@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dikey Atış - Animasyonlu Fizik Dersi</title>
+  <meta name="description" content="Dikey atış hareketi animasyonlu interaktif fizik dersi">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+</head>
+
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>⬆ Dikey Atış Hareketi</h1>
+        <span class="subtitle">v₀=10 m/s &nbsp;|&nbsp; y₀=20 m &nbsp;|&nbsp; g=9.81 m/s²</span>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary" id="btn-play">▶ Başlat</button>
+        <button class="btn btn-secondary" id="btn-reset">↺ Sıfırla</button>
+        <input type="range" class="time-slider" id="time-slider" min="0" max="3.28" step="0.01" value="0"
+          oninput="document.getElementById('slider-val').textContent = parseFloat(this.value).toFixed(2) + ' s'">
+        <span class="slider-label" id="slider-val">0.00 s</span>
+      </div>
+    </div>
+
+    <!-- Middle Row: Sim + 2 Graphs -->
+    <div class="mid">
+      <div class="card sim-card">
+        <div class="card-title"><span>🎯</span> Simülasyon</div>
+        <div class="sim-svg-container">
+          <svg id="sim-svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="live-data">
+          <div class="data-item">
+            <div class="label">t</div>
+            <div class="value" id="live-t">0.000 s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">v</div>
+            <div class="value" id="live-v">10.00 m/s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">y</div>
+            <div class="value" id="live-y">20.00 m</div>
+          </div>
+          <div class="data-item">
+            <div class="label">a</div>
+            <div class="value" id="live-a">-9.81 m/s²</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card graph-card velocity">
+        <div class="card-title"><span>📉</span> Hız–Zaman (v-t)</div>
+        <svg id="v-graph" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+      <div class="card graph-card position">
+        <div class="card-title"><span>📈</span> Konum–Zaman (y-t)</div>
+        <svg id="y-graph" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+
+    <!-- Bottom: Solution Steps -->
+    <div class="bottom">
+      <div class="step-card">
+        <div class="step-label">Adım A</div>
+        <h3>Hız ve Konum Denklemleri</h3>
+        <div class="formula">v(t) = v₀ − g·t = 10 − 9.81t</div>
+        <div class="formula">y(t) = y₀ + v₀t − ½gt² = 20 + 10t − 4.905t²</div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Adım B</div>
+        <h3>Maksimum Yükseklik</h3>
+        <div class="formula">v = 0 → t = 10/9.81 = 1.019 s</div>
+        <div class="result">y_max = 25.10 m &nbsp;|&nbsp; t = 1.019 s</div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Adım C</div>
+        <h3>Yere Düşme Anı</h3>
+        <div class="formula">y = 0 → 4.905t² − 10t − 20 = 0</div>
+        <div class="result">t = 3.28 s &nbsp;|&nbsp; v = −22.17 m/s</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
