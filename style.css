@@ -107,7 +107,7 @@ body {
 
 .param-group input:focus {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.12);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
 }
 
 .btn-apply {
@@ -193,7 +193,7 @@ body {
 /* ── Middle: 3-column layout ── */
 .mid {
   display: grid;
-  grid-template-columns: 280px 1fr 1fr;
+  grid-template-columns: 360px 1fr 1fr;
   gap: 10px;
   min-height: 0;
 }

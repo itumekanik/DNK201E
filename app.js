@@ -48,7 +48,7 @@ function addText(svg, x, y, text, fill, size, id) {
 }
 
 // ─── SVG Scene ───
-const SIM_W = 300, SIM_H = 460;
+const SIM_W = 380, SIM_H = 460;
 const GROUND_Y = SIM_H - 28;
 let MAX_Y_SCENE = 28;
 const mToPx = (m) => GROUND_Y - (m / MAX_Y_SCENE) * (GROUND_Y - 30);
@@ -91,10 +91,10 @@ function buildScene() {
     // Y-axis
     const yStep = Math.max(Math.round(MAX_Y_SCENE / 6), 5);
     for (let m = 0; m <= MAX_Y_SCENE - 2; m += yStep) {
-        addLine(svg, 14, mToPx(m), 22, mToPx(m), '#94a3b8', 1, 0.6);
-        addText(svg, 2, mToPx(m) + 4, `${m}`, '#64748b', '9px');
+        addLine(svg, 18, mToPx(m), 28, mToPx(m), '#94a3b8', 1, 0.6);
+        addText(svg, 2, mToPx(m) + 5, `${m}`, '#334155', '12px');
     }
-    addText(svg, 2, mToPx(MAX_Y_SCENE - 1), 'y(m)', '#64748b', '9px');
+    addText(svg, 2, mToPx(MAX_Y_SCENE - 1), 'y(m)', '#334155', '12px');
 
     // Trajectory
     let pathD = '';
@@ -108,11 +108,11 @@ function buildScene() {
     svg.appendChild(traj);
 
     // Reference lines
-    addLine(svg, 28, mToPx(Y_MAX), 195, mToPx(Y_MAX), '#d97706', 1, 0.5, '5,4');
-    addText(svg, 198, mToPx(Y_MAX) + 4, `y_max=${Y_MAX.toFixed(1)}m`, '#d97706', '9px');
-    addLine(svg, 28, mToPx(Y0), 195, mToPx(Y0), '#7c3aed', 1, 0.35, '5,4');
-    addText(svg, 198, mToPx(Y0) + 4, `y₀=${Y0}m`, '#7c3aed', '9px');
-    addText(svg, 198, GROUND_Y - 4, 'y=0', '#64748b', '9px');
+    addLine(svg, 32, mToPx(Y_MAX), 220, mToPx(Y_MAX), '#d97706', 1, 0.5, '5,4');
+    addText(svg, 225, mToPx(Y_MAX) + 5, `y_max = ${Y_MAX.toFixed(1)} m`, '#b45309', '12px');
+    addLine(svg, 32, mToPx(Y0), 220, mToPx(Y0), '#7c3aed', 1, 0.35, '5,4');
+    addText(svg, 225, mToPx(Y0) + 5, `y₀ = ${Y0} m`, '#6d28d9', '12px');
+    addText(svg, 225, GROUND_Y - 4, 'y = 0 (ground)', '#334155', '12px');
 
     // Ball
     const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -143,7 +143,7 @@ function buildScene() {
     mp.setAttribute('points', '0 0, 10 3.5, 0 7'); mp.setAttribute('fill', '#059669');
     marker.appendChild(mp); defs.appendChild(marker);
 
-    addText(svg, 120, SIM_H - 6, 't = 0.00 s', '#475569', '11px', 'time-label');
+    addText(svg, 140, SIM_H - 6, 't = 0.00 s', '#334155', '13px', 'time-label');
 }
 
 // ─── Graphs ───
