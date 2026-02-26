@@ -343,6 +343,21 @@ function resetAnimation() {
     document.querySelectorAll('.step-card').forEach(el => el.classList.remove('visible'));
 }
 
+// ─── Modal ───
+function openTheoryModal() {
+    const modal = document.getElementById('theory-modal');
+    // Populate dynamic results
+    document.getElementById('modal-result-b').innerHTML =
+        `Substituting: t_top = ${V0}/${G} = <b>${T_TOP.toFixed(3)} s</b> → y_max = ${Y0} + ${V0}²/(2×${G}) = <b>${Y_MAX.toFixed(2)} m</b>`;
+    document.getElementById('modal-result-c').innerHTML =
+        `Substituting: t_ground = <b>${T_GROUND.toFixed(3)} s</b> → v_ground = ${V0} − ${G}×${T_GROUND.toFixed(3)} = <b>${V_GROUND.toFixed(2)} m/s</b>`;
+    modal.classList.add('active');
+    if (window.MathJax && MathJax.typeset) MathJax.typeset();
+}
+function closeTheoryModal() {
+    document.getElementById('theory-modal').classList.remove('active');
+}
+
 // ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
     recalcParams();
@@ -356,6 +371,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btn-reset').addEventListener('click', resetAnimation);
     document.getElementById('btn-apply').addEventListener('click', rebuildAll);
+
+    // Theory modal
+    document.getElementById('btn-theory').addEventListener('click', openTheoryModal);
+    document.getElementById('modal-close').addEventListener('click', closeTheoryModal);
+    document.getElementById('theory-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeTheoryModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeTheoryModal();
+    });
 
     const slider = document.getElementById('time-slider');
     slider.max = T_GROUND.toFixed(3);

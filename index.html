@@ -33,6 +33,7 @@
         </div>
       </div>
       <div class="controls">
+        <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
         <button class="btn btn-primary" id="btn-play">▶ Play</button>
         <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
         <input type="range" class="time-slider" id="time-slider" min="0" max="3.28" step="0.01" value="0"
@@ -102,6 +103,106 @@
     </div>
   </div>
 
+  <!-- Theory Modal -->
+  <div class="modal-overlay" id="theory-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📖 Theoretical Solution — Vertical Projectile Motion</h2>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="modal-section">
+          <h3>🔹 Problem Statement</h3>
+          <p>A ball is tossed with a velocity of <b>v₀</b> directed vertically upward from a window located <b>y₀</b>
+            above the ground. Knowing that the acceleration of the ball is constant and equal to <b>g</b> downward,
+            determine:</p>
+          <ol>
+            <li>The velocity <i>v</i> and elevation <i>y</i> of the ball above the ground at any time <i>t</i></li>
+            <li>The highest elevation reached by the ball and the corresponding value of <i>t</i></li>
+            <li>The time when the ball will hit the ground and the corresponding velocity</li>
+          </ol>
+          <p>Draw the <b>v–t</b> and <b>y–t</b> curves.</p>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔹 Given & Find</h3>
+          <div class="modal-columns">
+            <div class="modal-col">
+              <h4>Given</h4>
+              <p>\( v_0 \) = initial velocity (upward)</p>
+              <p>\( y_0 \) = window height above ground</p>
+              <p>\( a = -g \) = constant acceleration (downward)</p>
+            </div>
+            <div class="modal-col">
+              <h4>Find</h4>
+              <p>(a) \( v(t) \) and \( y(t) \)</p>
+              <p>(b) \( y_{\max} \) and corresponding \( t \)</p>
+              <p>(c) \( t \) when \( y = 0 \) and corresponding \( v \)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔹 Part (a): General Equations of Motion</h3>
+          <p>Since the acceleration is constant, we use the uniformly accelerated motion equations. Taking the positive
+            direction as <b>upward</b> and origin at <b>ground level</b>:</p>
+          <div class="modal-formula">
+            $$ v(t) = v_0 + a \cdot t = v_0 - g \cdot t $$
+          </div>
+          <div class="modal-formula">
+            $$ y(t) = y_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2 = y_0 + v_0 t - \frac{1}{2} g t^2 $$
+          </div>
+          <p>These equations describe the velocity and position of the ball at any time \( t \geq 0 \).</p>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔹 Part (b): Maximum Elevation</h3>
+          <p>At the highest point, the velocity is zero. Setting \( v(t) = 0 \):</p>
+          <div class="modal-formula">
+            $$ 0 = v_0 - g \cdot t_{\text{top}} \quad \Rightarrow \quad t_{\text{top}} = \frac{v_0}{g} $$
+          </div>
+          <p>Substituting \( t_{\text{top}} \) into the position equation:</p>
+          <div class="modal-formula">
+            $$ y_{\max} = y_0 + v_0 \cdot \frac{v_0}{g} - \frac{1}{2} g \left( \frac{v_0}{g} \right)^2 = y_0 +
+            \frac{v_0^2}{2g} $$
+          </div>
+          <div class="modal-result" id="modal-result-b"></div>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔹 Part (c): Time to Hit Ground</h3>
+          <p>When the ball hits the ground, \( y = 0 \). Setting \( y(t) = 0 \):</p>
+          <div class="modal-formula">
+            $$ 0 = y_0 + v_0 t - \frac{1}{2} g t^2 $$
+          </div>
+          <p>Rearranging into standard quadratic form \( at^2 + bt + c = 0 \):</p>
+          <div class="modal-formula">
+            $$ \frac{1}{2} g \cdot t^2 - v_0 \cdot t - y_0 = 0 $$
+          </div>
+          <p>Applying the quadratic formula and taking the positive root:</p>
+          <div class="modal-formula">
+            $$ t_{\text{ground}} = \frac{v_0 + \sqrt{v_0^2 + 2 g y_0}}{g} $$
+          </div>
+          <p>The velocity at impact:</p>
+          <div class="modal-formula">
+            $$ v_{\text{ground}} = v_0 - g \cdot t_{\text{ground}} $$
+          </div>
+          <div class="modal-result" id="modal-result-c"></div>
+        </div>
+
+        <div class="modal-section">
+          <h3>🔹 Graphs</h3>
+          <p>The <b>v–t curve</b> is a straight line with slope \( -g \) and y-intercept \( v_0 \).</p>
+          <p>The <b>y–t curve</b> is a downward-opening parabola starting at \( y_0 \), peaking at \( y_{\max} \), and
+            returning to zero at \( t_{\text{ground}} \).</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
   <script src="app.js"></script>
 </body>
 
