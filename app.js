@@ -316,7 +316,7 @@ function playAnimation() {
     const animObj = { t: parseFloat(document.getElementById('time-slider').value) || 0 };
     animTimeline = anime({
         targets: animObj, t: T_GROUND,
-        duration: 5000 * (1 - animObj.t / T_GROUND),
+        duration: T_GROUND * 1000 * (1 - animObj.t / T_GROUND),
         easing: 'linear',
         update: () => updateScene(animObj.t),
         complete: () => {
