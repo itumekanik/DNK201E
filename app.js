@@ -77,7 +77,7 @@ function buildScene() {
     for (let x = 0; x < SIM_W; x += 10) addLine(svg, x, GROUND_Y, x - 6, SIM_H, '#4ade80', 1, 0.3);
 
     // Building
-    const bx = 50, bw = 55, buildTop = Math.max(Y0 + 2, 22);
+    const bx = 50, bw = 55, buildTop = Y0 + 2;
     addRect(svg, bx, mToPx(buildTop), bw, GROUND_Y - mToPx(buildTop), '#cbd5e1', '#94a3b8', 1);
     const floors = Math.max(Math.round(Y0 / 5), 1);
     for (let floor = 0; floor < floors; floor++) {
