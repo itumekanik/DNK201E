@@ -243,7 +243,7 @@ let animTimeline = null, isPlaying = false, vGraph, yGraph;
 function rebuildAll() {
     if (animTimeline) animTimeline.pause();
     isPlaying = false;
-    document.getElementById('btn-play').textContent = '▶ Başlat';
+    document.getElementById('btn-play').textContent = '▶ Play';
     recalcParams();
     buildScene();
     vGraph = buildGraph('v-graph', 'v');
@@ -312,7 +312,7 @@ function updateScene(t) {
 function playAnimation() {
     if (isPlaying) return;
     isPlaying = true;
-    document.getElementById('btn-play').textContent = '⏸ Duraklat';
+    document.getElementById('btn-play').textContent = '⏸ Pause';
     const animObj = { t: parseFloat(document.getElementById('time-slider').value) || 0 };
     animTimeline = anime({
         targets: animObj, t: T_GROUND,
@@ -321,7 +321,7 @@ function playAnimation() {
         update: () => updateScene(animObj.t),
         complete: () => {
             isPlaying = false;
-            document.getElementById('btn-play').textContent = '▶ Başlat';
+            document.getElementById('btn-play').textContent = '▶ Play';
             document.querySelectorAll('.key-point').forEach((el, i) => setTimeout(() => el.setAttribute('opacity', '1'), i * 150));
             document.querySelectorAll('.step-card').forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 250));
         }
@@ -331,13 +331,13 @@ function playAnimation() {
 function pauseAnimation() {
     if (animTimeline) animTimeline.pause();
     isPlaying = false;
-    document.getElementById('btn-play').textContent = '▶ Başlat';
+    document.getElementById('btn-play').textContent = '▶ Play';
 }
 
 function resetAnimation() {
     if (animTimeline) animTimeline.pause();
     isPlaying = false;
-    document.getElementById('btn-play').textContent = '▶ Başlat';
+    document.getElementById('btn-play').textContent = '▶ Play';
     updateScene(0);
     document.querySelectorAll('.key-point').forEach(el => el.setAttribute('opacity', '0'));
     document.querySelectorAll('.step-card').forEach(el => el.classList.remove('visible'));
