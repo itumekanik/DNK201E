@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polar Coordinates - Spiral Guide Animation</title>
+    <link rel="stylesheet" href="style2.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+</head>
+
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>🌀 Curvilinear Motion — Polar Coordinates</h1>
+                <div class="param-inputs">
+                    <div class="param-group">
+                        <label>θ̇ (rad/s)</label>
+                        <input type="number" id="input-thetadot" value="3" step="0.5" min="0.1">
+                    </div>
+                    <div class="param-group">
+                        <label>r coeff</label>
+                        <input type="number" id="input-rcoeff" value="0.4" step="0.05" min="0.01">
+                    </div>
+                    <div class="param-group">
+                        <label>θ_eval (rad)</label>
+                        <input type="number" id="input-thetaeval" value="1.0472" step="0.1" min="0.1">
+                    </div>
+                    <button class="btn btn-apply" id="btn-apply">⟳ Apply</button>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
+                <button class="btn btn-primary" id="btn-play">▶ Play</button>
+                <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
+                <input type="range" class="time-slider" id="time-slider" min="0" max="1.0472" step="0.001" value="0"
+                    oninput="document.getElementById('slider-val').textContent = parseFloat(this.value).toFixed(3) + ' rad'">
+                <span class="slider-label" id="slider-val">0.000 rad</span>
+            </div>
+        </div>
+
+        <!-- Middle: Simulation + Results -->
+        <div class="mid">
+            <div class="card">
+                <div class="card-title"><span>🎯</span> Simulation</div>
+                <div class="sim-svg-container">
+                    <svg id="sim-svg" preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+                <div class="live-data">
+                    <div class="data-item">
+                        <div class="label">θ</div>
+                        <div class="value" id="live-theta">0.000 rad</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="label">r</div>
+                        <div class="value" id="live-r">0.0000 m</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="label">vᵣ</div>
+                        <div class="value" id="live-vr">0.00 m/s</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="label">vθ</div>
+                        <div class="value" id="live-vt">0.00 m/s</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card results-card">
+                <div class="card-title"><span>📊</span> Results at θ = π/3</div>
+                <div class="result-grid">
+                    <div class="result-box radial">
+                        <div class="rb-label">Radial Velocity (vᵣ)</div>
+                        <div class="rb-formula">vᵣ = ṙ = 0.4·θ̇</div>
+                        <div class="rb-value" id="res-vr">1.200 m/s</div>
+                    </div>
+                    <div class="result-box transverse">
+                        <div class="rb-label">Transverse Velocity (vθ)</div>
+                        <div class="rb-formula">vθ = r·θ̇</div>
+                        <div class="rb-value" id="res-vt">1.257 m/s</div>
+                    </div>
+                    <div class="result-box radial">
+                        <div class="rb-label">Radial Acceleration (aᵣ)</div>
+                        <div class="rb-formula">aᵣ = r̈ − r·θ̇²</div>
+                        <div class="rb-value" id="res-ar">-3.770 m/s²</div>
+                    </div>
+                    <div class="result-box transverse">
+                        <div class="rb-label">Transverse Acceleration (aθ)</div>
+                        <div class="rb-formula">aθ = r·θ̈ + 2ṙ·θ̇</div>
+                        <div class="rb-value" id="res-at">7.200 m/s²</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom: Solution Steps -->
+        <div class="bottom">
+            <div class="step-card">
+                <div class="step-label">Step 1</div>
+                <h3>Time Derivatives</h3>
+                <div class="formula">ṙ = 0.4·θ̇ = 0.4×3 = 1.20</div>
+                <div class="formula">r̈ = 0.4·θ̈ = 0</div>
+            </div>
+            <div class="step-card">
+                <div class="step-label">Step 2</div>
+                <h3>At θ = π/3</h3>
+                <div class="formula">r = 0.4×1.0472 = 0.4189 m</div>
+                <div class="result">ṙ = 1.20 | r̈ = 0.00</div>
+            </div>
+            <div class="step-card">
+                <div class="step-label">Step 3</div>
+                <h3>Velocity Components</h3>
+                <div class="formula">vᵣ = ṙ = 1.20 m/s</div>
+                <div class="formula">vθ = rθ̇ = 0.4189×3 = 1.26 m/s</div>
+            </div>
+            <div class="step-card">
+                <div class="step-label">Step 4</div>
+                <h3>Acceleration Components</h3>
+                <div class="formula">aᵣ = r̈ − rθ̇² = 0 − 0.4189×9 = -3.77 m/s²</div>
+                <div class="formula">aθ = rθ̈ + 2ṙθ̇ = 0 + 2×1.20×3 = 7.20 m/s²</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theory Modal -->
+    <div class="modal-overlay" id="theory-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📖 Curvilinear Motion in Polar Coordinates</h2>
+                <button class="modal-close" id="modal-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h3>🔹 Problem Statement</h3>
+                    <p>A slotted link is pinned at <b>O</b> and rotates with constant angular velocity <b>θ̇</b>. It
+                        drives a peg <b>P</b> along a spiral guide defined by <b>r = 0.4θ</b> (m), where θ is in
+                        radians. Determine the radial and transverse components of velocity and acceleration of P at the
+                        instant θ = π/3 rad.</p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔹 Given & Find</h3>
+                    <div class="modal-columns">
+                        <div class="modal-col">
+                            <h4>Given</h4>
+                            <p>\( \dot{\theta} = \text{const} \) (angular velocity)</p>
+                            <p>\( \ddot{\theta} = 0 \) (constant ω)</p>
+                            <p>\( r = 0.4\theta \) (spiral equation)</p>
+                        </div>
+                        <div class="modal-col">
+                            <h4>Find at \( \theta = \pi/3 \)</h4>
+                            <p>\( v_r, \; v_\theta \) (velocity components)</p>
+                            <p>\( a_r, \; a_\theta \) (acceleration components)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔹 Polar Coordinate Formulas</h3>
+                    <p>In polar coordinates, the velocity and acceleration components are:</p>
+                    <div class="modal-formula">
+                        $$ v_r = \dot{r} \qquad v_\theta = r\dot{\theta} $$
+                    </div>
+                    <div class="modal-formula">
+                        $$ a_r = \ddot{r} - r\dot{\theta}^2 \qquad a_\theta = r\ddot{\theta} + 2\dot{r}\dot{\theta} $$
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔹 Time Derivatives of r</h3>
+                    <p>Since \( r = 0.4\theta \), differentiating with respect to time:</p>
+                    <div class="modal-formula">
+                        $$ \dot{r} = 0.4\dot{\theta} $$
+                    </div>
+                    <div class="modal-formula">
+                        $$ \ddot{r} = 0.4\ddot{\theta} = 0 \quad (\text{since } \dot{\theta} = \text{const}) $$
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔹 Velocity Components</h3>
+                    <div class="modal-formula">
+                        $$ v_r = \dot{r} = 0.4\dot{\theta} $$
+                    </div>
+                    <div class="modal-formula">
+                        $$ v_\theta = r\dot{\theta} = 0.4\theta\dot{\theta} $$
+                    </div>
+                    <div class="modal-result" id="modal-result-vel"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔹 Acceleration Components</h3>
+                    <div class="modal-formula">
+                        $$ a_r = \ddot{r} - r\dot{\theta}^2 = 0 - 0.4\theta\dot{\theta}^2 = -0.4\theta\dot{\theta}^2 $$
+                    </div>
+                    <div class="modal-formula">
+                        $$ a_\theta = r\ddot{\theta} + 2\dot{r}\dot{\theta} = 0 + 2(0.4\dot{\theta})\dot{\theta} =
+                        0.8\dot{\theta}^2 $$
+                    </div>
+                    <div class="modal-result" id="modal-result-acc"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+    <script src="app2.js"></script>
+</body>
+
+</html>
