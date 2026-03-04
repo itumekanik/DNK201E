@@ -2,208 +2,71 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vertical Throw - Animated Physics Lesson</title>
-  <meta name="description" content="Vertical projectile motion - interactive animated physics lesson">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNK201E — Dynamics | Interactive Problem Solutions</title>
+    <meta name="description" content="DNK201E Dynamics course — interactive animated problem solutions">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <div class="page">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-left">
-        <h1>⬆ Vertical Projectile Motion</h1>
-        <div class="param-inputs">
-          <div class="param-group">
-            <label>v₀ (m/s)</label>
-            <input type="number" id="input-v0" value="10" step="0.5" min="0">
-          </div>
-          <div class="param-group">
-            <label>y₀ (m)</label>
-            <input type="number" id="input-y0" value="20" step="1" min="0">
-          </div>
-          <div class="param-group">
-            <label>g (m/s²)</label>
-            <input type="number" id="input-g" value="9.81" step="0.01" min="0.1">
-          </div>
-          <button class="btn btn-apply" id="btn-apply">⟳ Apply</button>
+
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">İTÜ — 2025-2026</div>
+            <h1>DNK201E Dynamics</h1>
+            <h2>Interactive, animated problem solutions for kinematics and kinetics of particles</h2>
         </div>
-      </div>
-      <div class="controls">
-        <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
-        <button class="btn btn-primary" id="btn-play">▶ Play</button>
-        <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
-        <input type="range" class="time-slider" id="time-slider" min="0" max="3.28" step="0.01" value="0"
-          oninput="document.getElementById('slider-val').textContent = parseFloat(this.value).toFixed(2) + ' s'">
-        <span class="slider-label" id="slider-val">0.00 s</span>
-      </div>
     </div>
 
-    <!-- Middle Row: Sim + 2 Graphs -->
-    <div class="mid">
-      <div class="card sim-card">
-        <div class="card-title"><span>🎯</span> Simulation</div>
-        <div class="sim-svg-container">
-          <svg id="sim-svg" preserveAspectRatio="xMidYMid meet"></svg>
-        </div>
-        <div class="live-data">
-          <div class="data-item">
-            <div class="label">t</div>
-            <div class="value" id="live-t">0.000 s</div>
-          </div>
-          <div class="data-item">
-            <div class="label">v</div>
-            <div class="value" id="live-v">10.00 m/s</div>
-          </div>
-          <div class="data-item">
-            <div class="label">y</div>
-            <div class="value" id="live-y">20.00 m</div>
-          </div>
-          <div class="data-item">
-            <div class="label">a</div>
-            <div class="value" id="live-a">-9.81 m/s²</div>
-          </div>
-        </div>
-      </div>
+    <div class="container">
+        <div class="section-title">Problem Solutions</div>
 
-      <div class="card graph-card velocity">
-        <div class="card-title"><span>📉</span> Velocity–Time (v-t)</div>
-        <svg id="v-graph" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
+        <div class="problems-grid">
+            <!-- Problem 1 -->
+            <a class="problem-card" href="index1.html">
+                <div class="card-accent blue"></div>
+                <div class="card-body">
+                    <div class="card-week">Week 1 — Rectilinear Kinematics</div>
+                    <h3>⬆ Vertical Projectile Motion</h3>
+                    <p>A ball is tossed vertically upward from a window. Determine velocity, position, maximum height,
+                        and time to hit the ground. Includes v–t and y–t graphs.</p>
+                    <div class="card-tags">
+                        <span class="tag blue">Uniform Acceleration</span>
+                        <span class="tag green">v-t & y-t Curves</span>
+                        <span class="tag orange">Free Fall</span>
+                    </div>
+                    <div class="card-link blue">
+                        Open Interactive Solution <span class="arrow">→</span>
+                    </div>
+                </div>
+            </a>
 
-      <div class="card graph-card position">
-        <div class="card-title"><span>📈</span> Position–Time (y-t)</div>
-        <svg id="y-graph" preserveAspectRatio="xMidYMid meet"></svg>
-      </div>
+            <!-- Problem 2 -->
+            <a class="problem-card" href="index2.html">
+                <div class="card-accent purple"></div>
+                <div class="card-body">
+                    <div class="card-week">Week 2 — Curvilinear Motion</div>
+                    <h3>🌀 Polar Coordinates — Spiral Guide</h3>
+                    <p>A slotted link drives a peg along a spiral guide r = 0.4θ. Determine radial and transverse
+                        components of velocity and acceleration at θ = π/3.</p>
+                    <div class="card-tags">
+                        <span class="tag purple">Polar Coordinates</span>
+                        <span class="tag green">r-θ Components</span>
+                        <span class="tag orange">Spiral Motion</span>
+                    </div>
+                    <div class="card-link purple">
+                        Open Interactive Solution <span class="arrow">→</span>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
-    <!-- Bottom: Solution Steps -->
-    <div class="bottom">
-      <div class="step-card">
-        <div class="step-label">Step A</div>
-        <h3>Velocity & Position Equations</h3>
-        <div class="formula">v(t) = v₀ − g·t = 10 − 9.81t</div>
-        <div class="formula">y(t) = y₀ + v₀t − ½gt² = 20 + 10t − 4.905t²</div>
-      </div>
-      <div class="step-card">
-        <div class="step-label">Step B</div>
-        <h3>Maximum Elevation</h3>
-        <div class="formula">v = 0 → t = 10/9.81 = 1.019 s</div>
-        <div class="result">y_max = 25.10 m &nbsp;|&nbsp; t = 1.019 s</div>
-      </div>
-      <div class="step-card">
-        <div class="step-label">Step C</div>
-        <h3>Time to Hit Ground</h3>
-        <div class="formula">y = 0 → 4.905t² − 10t − 20 = 0</div>
-        <div class="result">t = 3.28 s &nbsp;|&nbsp; v = −22.17 m/s</div>
-      </div>
+    <div class="footer">
+        DNK201E Dynamics — İstanbul Technical University &nbsp;|&nbsp; Built with ❤️ for engineering education
     </div>
-  </div>
 
-  <!-- Theory Modal -->
-  <div class="modal-overlay" id="theory-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>📖 Theoretical Solution — Vertical Projectile Motion</h2>
-        <button class="modal-close" id="modal-close">✕</button>
-      </div>
-      <div class="modal-body">
-
-        <div class="modal-section">
-          <h3>🔹 Problem Statement</h3>
-          <p>A ball is tossed with a velocity of <b>v₀</b> directed vertically upward from a window located <b>y₀</b>
-            above the ground. Knowing that the acceleration of the ball is constant and equal to <b>g</b> downward,
-            determine:</p>
-          <ol>
-            <li>The velocity <i>v</i> and elevation <i>y</i> of the ball above the ground at any time <i>t</i></li>
-            <li>The highest elevation reached by the ball and the corresponding value of <i>t</i></li>
-            <li>The time when the ball will hit the ground and the corresponding velocity</li>
-          </ol>
-          <p>Draw the <b>v–t</b> and <b>y–t</b> curves.</p>
-        </div>
-
-        <div class="modal-section">
-          <h3>🔹 Given & Find</h3>
-          <div class="modal-columns">
-            <div class="modal-col">
-              <h4>Given</h4>
-              <p>\( v_0 \) = initial velocity (upward)</p>
-              <p>\( y_0 \) = window height above ground</p>
-              <p>\( a = -g \) = constant acceleration (downward)</p>
-            </div>
-            <div class="modal-col">
-              <h4>Find</h4>
-              <p>(a) \( v(t) \) and \( y(t) \)</p>
-              <p>(b) \( y_{\max} \) and corresponding \( t \)</p>
-              <p>(c) \( t \) when \( y = 0 \) and corresponding \( v \)</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-section">
-          <h3>🔹 Part (a): General Equations of Motion</h3>
-          <p>Since the acceleration is constant, we use the uniformly accelerated motion equations. Taking the positive
-            direction as <b>upward</b> and origin at <b>ground level</b>:</p>
-          <div class="modal-formula">
-            $$ v(t) = v_0 + a \cdot t = v_0 - g \cdot t $$
-          </div>
-          <div class="modal-formula">
-            $$ y(t) = y_0 + v_0 \cdot t + \frac{1}{2} a \cdot t^2 = y_0 + v_0 t - \frac{1}{2} g t^2 $$
-          </div>
-          <p>These equations describe the velocity and position of the ball at any time \( t \geq 0 \).</p>
-        </div>
-
-        <div class="modal-section">
-          <h3>🔹 Part (b): Maximum Elevation</h3>
-          <p>At the highest point, the velocity is zero. Setting \( v(t) = 0 \):</p>
-          <div class="modal-formula">
-            $$ 0 = v_0 - g \cdot t_{\text{top}} \quad \Rightarrow \quad t_{\text{top}} = \frac{v_0}{g} $$
-          </div>
-          <p>Substituting \( t_{\text{top}} \) into the position equation:</p>
-          <div class="modal-formula">
-            $$ y_{\max} = y_0 + v_0 \cdot \frac{v_0}{g} - \frac{1}{2} g \left( \frac{v_0}{g} \right)^2 = y_0 +
-            \frac{v_0^2}{2g} $$
-          </div>
-          <div class="modal-result" id="modal-result-b"></div>
-        </div>
-
-        <div class="modal-section">
-          <h3>🔹 Part (c): Time to Hit Ground</h3>
-          <p>When the ball hits the ground, \( y = 0 \). Setting \( y(t) = 0 \):</p>
-          <div class="modal-formula">
-            $$ 0 = y_0 + v_0 t - \frac{1}{2} g t^2 $$
-          </div>
-          <p>Rearranging into standard quadratic form \( at^2 + bt + c = 0 \):</p>
-          <div class="modal-formula">
-            $$ \frac{1}{2} g \cdot t^2 - v_0 \cdot t - y_0 = 0 $$
-          </div>
-          <p>Applying the quadratic formula and taking the positive root:</p>
-          <div class="modal-formula">
-            $$ t_{\text{ground}} = \frac{v_0 + \sqrt{v_0^2 + 2 g y_0}}{g} $$
-          </div>
-          <p>The velocity at impact:</p>
-          <div class="modal-formula">
-            $$ v_{\text{ground}} = v_0 - g \cdot t_{\text{ground}} $$
-          </div>
-          <div class="modal-result" id="modal-result-c"></div>
-        </div>
-
-        <div class="modal-section">
-          <h3>🔹 Graphs</h3>
-          <p>The <b>v–t curve</b> is a straight line with slope \( -g \) and y-intercept \( v_0 \).</p>
-          <p>The <b>y–t curve</b> is a downward-opening parabola starting at \( y_0 \), peaking at \( y_{\max} \), and
-            returning to zero at \( t_{\text{ground}} \).</p>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
-  <script src="app.js"></script>
 </body>
 
 </html>
