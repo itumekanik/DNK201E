@@ -228,12 +228,46 @@ function updateSubPanels(updateOrbit = true) {
   // ── Simulation from p135 (only update orbit geometry on explicit Apply/init) ──
   simState.hKm  = p135.h_km;
   simState.vKmh = p135.v_kmh;
+  simState.R_km = p135.R_km;
+
+  const orbitValid = p135.h_km > 0;
+
   if (updateOrbit) {
-    simState.orbitRpx = BASE_Rpx + Math.min((p135.h_km / p135.R_km) * BASE_Rpx * 1.8, 130);
+    if (orbitValid) {
+      // Physically proportional: orbit radius px = BASE_Rpx × r / R
+      // Capped so satellite stays within SVG canvas
+      const maxOrbit = CY - 16;
+      simState.orbitRpx = Math.min(BASE_Rpx * p135.r_km / p135.R_km, maxOrbit);
+    } else {
+      simState.orbitRpx = BASE_Rpx; // parked on surface as warning
+    }
   }
-  document.getElementById('card-sim-title').textContent =
-    `🌍 Simulation — h = ${fmt(p135.h_km,'len',0)}, v = ${fmt(p135.v_kmh,'vel',0)}`;
+
+  // Show/hide invalid orbit warning in SVG
+  const existing = document.getElementById('invalid-orbit-msg');
+  if (!orbitValid) {
+    if (!existing) {
+      const warn = el('text', {
+        id: 'invalid-orbit-msg',
+        x: W / 2, y: H / 2 + BASE_Rpx + 22,
+        fill: '#ef4444', 'font-size': '11px', 'font-weight': '700',
+        'text-anchor': 'middle', 'font-family': "'JetBrains Mono',monospace"
+      }, '⚠ Orbit inside Earth — increase v or decrease R');
+      document.getElementById('sim-svg').appendChild(warn);
+    }
+    document.getElementById('btn-play').disabled = true;
+    document.getElementById('btn-play').style.opacity = '0.4';
+  } else {
+    if (existing) existing.remove();
+    document.getElementById('btn-play').disabled = false;
+    document.getElementById('btn-play').style.opacity = '';
+  }
+
+  document.getElementById('card-sim-title').textContent = orbitValid
+    ? `🌍 Simulation — h = ${fmt(p135.h_km,'len',0)}, v = ${fmt(p135.v_kmh,'vel',0)}`
+    : `⚠️ Invalid orbit (h = ${fmt(p135.h_km,'len',0)})`;
   if (!isPlaying) updateScene(currentAngle, simState.orbitRpx, p135.v_kmh, p135.h_km, p135.R_km);
+
 }
 
 
