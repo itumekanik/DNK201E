@@ -1,4 +1,4 @@
-// ─── Unit Conversion Helpers ───
+// ─── Unit Conversion Constants ───
 const KM_PER_MI = 1.60934;
 const MI_PER_KM = 1 / KM_PER_MI;
 const M_PER_FT  = 0.3048;
@@ -7,114 +7,208 @@ function activeUnits() {
   return document.getElementById('units-select')?.value || 'SI';
 }
 
-// Convert values to display in selected unit system
+// ─── Display formatting ───
 const UNITS = {
   SI: {
-    len: { factor: 1,          label: 'km'    },
-    vel: { factor: 1,          label: 'km/h'  },
-    vel_s: { factor: 1,        label: 'km/s'  },
-    acc: { factor: 1,          label: 'm/s²'  }, // g stays m/s²
-    R:   { factor: 1,          label: 'km'    },
+    len:   { factor: 1,           label: 'km'    },
+    vel:   { factor: 1,           label: 'km/h'  },
+    vel_s: { factor: 1,           label: 'km/s'  },
+    acc:   { factor: 1,           label: 'm/s²'  },
   },
   US: {
-    len: { factor: MI_PER_KM,  label: 'mi'    },
-    vel: { factor: MI_PER_KM,  label: 'mi/h'  },
-    vel_s: { factor: MI_PER_KM, label: 'mi/s' },
-    acc: { factor: 1 / M_PER_FT, label: 'ft/s²' }, // converts m/s² → ft/s²
-    R:   { factor: MI_PER_KM,  label: 'mi'    },
+    len:   { factor: MI_PER_KM,   label: 'mi'    },
+    vel:   { factor: MI_PER_KM,   label: 'mi/h'  },
+    vel_s: { factor: MI_PER_KM,   label: 'mi/s'  },
+    acc:   { factor: 1/M_PER_FT,  label: 'ft/s²' },
   }
 };
-
-function fmt(val, type, decimals = 1) {
+function fmt(val, type, dec = 1) {
   const u = UNITS[activeUnits()][type];
-  return (val * u.factor).toFixed(decimals) + ' ' + u.label;
+  return (val * u.factor).toFixed(dec) + ' ' + u.label;
 }
 
-// ─── Core Physics ───
-// All math in SI (km, km/s)
-// g_ms2 → km/s²;  R in km;  v in km/h
+// ─── Core Physics (all SI internally: km, km/s, m/s²) ───
 function g_km(g_ms2) { return g_ms2 / 1000; }
 
 function calcH_fromV(g_ms2, R_km, v_kmh) {
-  const v_kms = v_kmh / 3600;
-  const r = g_km(g_ms2) * R_km * R_km / (v_kms * v_kms);
+  const v = v_kmh / 3600;
+  const r = g_km(g_ms2) * R_km * R_km / (v * v);
   return { h_km: r - R_km, r_km: r };
 }
-
 function calcV_fromH(g_ms2, R_km, h_km) {
   const r = R_km + h_km;
-  const v_kms = Math.sqrt(g_km(g_ms2) * R_km * R_km / r);
-  return { v_kmh: v_kms * 3600, r_km: r };
+  const v = Math.sqrt(g_km(g_ms2) * R_km * R_km / r);
+  return { v_kmh: v * 3600, r_km: r };
 }
 
-// ─── Read per-problem inputs (always in their native units, convert internally) ───
+// ─── Canonical SI Values (ground truth, never mutated by display) ───
+// Original problem is US: convert once to SI for canonical storage.
+const CANONICAL = {
+  p133: {
+    g_ms2: 32.2 * M_PER_FT,                  // ≈ 9.8106 m/s²
+    R_km:  3960 * KM_PER_MI,                  // ≈ 6372.9 km
+    v_kmh: 16500 * KM_PER_MI                  // ≈ 26554 km/h
+  },
+  p134: {
+    h_km:  140 * KM_PER_MI                    // ≈ 225.3 km
+  },
+  p135: {
+    g_ms2: 9.81,
+    R_km:  6370,
+    v_kmh: 25000
+  }
+};
+
+// Tracks the unit system that the inputs are currently showing
+let prevUnit = 'SI';  // updated after every sync
+
+// ─── Helpers: read a single input as SI, given the unit it is displayed in ───
+function readInputAsSI_len(id, displayUnit) {
+  const v = parseFloat(document.getElementById(id)?.value);
+  if (isNaN(v)) return null;
+  return displayUnit === 'SI' ? v : v * KM_PER_MI;
+}
+function readInputAsSI_vel(id, displayUnit) {
+  const v = parseFloat(document.getElementById(id)?.value);
+  if (isNaN(v)) return null;
+  return displayUnit === 'SI' ? v : v * KM_PER_MI;
+}
+function readInputAsSI_acc(id, displayUnit) {
+  const v = parseFloat(document.getElementById(id)?.value);
+  if (isNaN(v)) return null;
+  return displayUnit === 'SI' ? v : v * M_PER_FT;
+}
+
+// ─── Sync input fields: convert CURRENT values from prevUnit → newUnit ───
+function syncInputsToUnits() {
+  const newUnit = activeUnits();
+  const from    = prevUnit;   // what the inputs are currently showing
+
+  // ── Read current inputs as SI (regardless of display unit) ──
+  const g133_si  = readInputAsSI_acc('p133-g', from) ?? CANONICAL.p133.g_ms2;
+  const R133_si  = readInputAsSI_len('p133-R', from) ?? CANONICAL.p133.R_km;
+  const v133_si  = readInputAsSI_vel('p133-v', from) ?? CANONICAL.p133.v_kmh;
+  const h134_si  = readInputAsSI_len('p134-h', from) ?? CANONICAL.p134.h_km;
+  const g135_si  = readInputAsSI_acc('p135-g', from) ?? CANONICAL.p135.g_ms2;
+  const R135_si  = readInputAsSI_len('p135-R', from) ?? CANONICAL.p135.R_km;
+  const v135_si  = readInputAsSI_vel('p135-v', from) ?? CANONICAL.p135.v_kmh;
+
+  // ── Write as new unit ──
+  if (newUnit === 'SI') {
+    setInput('p133-g', g133_si.toFixed(4),           'lbl-133-g', 'g (m/s²)');
+    setInput('p133-R', R133_si.toFixed(1),            'lbl-133-R', 'R (km)');
+    setInput('p133-v', v133_si.toFixed(0),            'lbl-133-v', 'v (km/h)');
+    setInput('p134-h', h134_si.toFixed(1),            'lbl-134-h', 'h (km)');
+    setLbl('lbl-134-g', 'g (m/s²)');  setLbl('lbl-134-R', 'R (km)');
+    setInput('p135-g', g135_si.toFixed(4),            'lbl-135-g', 'g (m/s²)');
+    setInput('p135-R', R135_si.toFixed(1),            'lbl-135-R', 'R (km)');
+    setInput('p135-v', v135_si.toFixed(0),            'lbl-135-v', 'v (km/h)');
+  } else {
+    setInput('p133-g', (g133_si / M_PER_FT).toFixed(2), 'lbl-133-g', 'g (ft/s²)');
+    setInput('p133-R', (R133_si * MI_PER_KM).toFixed(1),'lbl-133-R', 'R (mi)');
+    setInput('p133-v', (v133_si * MI_PER_KM).toFixed(0),'lbl-133-v', 'v (mi/h)');
+    setInput('p134-h', (h134_si * MI_PER_KM).toFixed(1),'lbl-134-h', 'h (mi)');
+    setLbl('lbl-134-g', 'g (ft/s²)');  setLbl('lbl-134-R', 'R (mi)');
+    setInput('p135-g', (g135_si / M_PER_FT).toFixed(2), 'lbl-135-g', 'g (ft/s²)');
+    setInput('p135-R', (R135_si * MI_PER_KM).toFixed(1),'lbl-135-R', 'R (mi)');
+    setInput('p135-v', (v135_si * MI_PER_KM).toFixed(0),'lbl-135-v', 'v (mi/h)');
+  }
+
+  prevUnit = newUnit;  // remember for next switch
+}
+
+function setInput(id, val, lblId, lblTxt) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+  if (lblId) setLbl(lblId, lblTxt);
+}
+function setLbl(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+// ─── Read inputs → always return SI ───
 function readP133() {
-  const g_ft  = parseFloat(document.getElementById('p133-g').value) || 32.2;
-  const R_mi  = parseFloat(document.getElementById('p133-R').value) || 3960;
-  const v_mih = parseFloat(document.getElementById('p133-v').value) || 16500;
-  // Convert to SI
-  const g_ms2 = g_ft * M_PER_FT;
-  const R_km  = R_mi * KM_PER_MI;
-  const v_kmh = v_mih * KM_PER_MI;
+  const u = activeUnits();
+  let g_ms2, R_km, v_kmh;
+  const gV = parseFloat(document.getElementById('p133-g').value);
+  const RV = parseFloat(document.getElementById('p133-R').value);
+  const vV = parseFloat(document.getElementById('p133-v').value);
+  if (u === 'SI') {
+    g_ms2 = isNaN(gV) ? CANONICAL.p133.g_ms2 : gV;
+    R_km  = isNaN(RV) ? CANONICAL.p133.R_km  : RV;
+    v_kmh = isNaN(vV) ? CANONICAL.p133.v_kmh : vV;
+  } else {
+    g_ms2 = (isNaN(gV) ? 32.2 : gV) * M_PER_FT;
+    R_km  = (isNaN(RV) ? 3960 : RV) * KM_PER_MI;
+    v_kmh = (isNaN(vV) ? 16500: vV) * KM_PER_MI;
+  }
   const { h_km, r_km } = calcH_fromV(g_ms2, R_km, v_kmh);
-  return { g_ms2, R_km, v_kmh, h_km, r_km, g_ft, R_mi, v_mih };
+  return { g_ms2, R_km, v_kmh, h_km, r_km };
 }
 
 function readP134() {
-  const g_ft  = parseFloat(document.getElementById('p133-g').value) || 32.2;
-  const R_mi  = parseFloat(document.getElementById('p133-R').value) || 3960;
-  const h_mi  = parseFloat(document.getElementById('p134-h').value) || 140;
-  const g_ms2 = g_ft * M_PER_FT;
-  const R_km  = R_mi * KM_PER_MI;
-  const h_km  = h_mi * KM_PER_MI;
-  const { v_kmh, r_km } = calcV_fromH(g_ms2, R_km, h_km);
-  return { g_ms2, R_km, h_km, v_kmh, r_km, g_ft, R_mi, h_mi };
+  const u = activeUnits();
+  const p133 = readP133(); // shares g and R
+  const hV = parseFloat(document.getElementById('p134-h').value);
+  const h_km = u === 'SI'
+    ? (isNaN(hV) ? CANONICAL.p134.h_km : hV)
+    : (isNaN(hV) ? CANONICAL.p134.h_km : hV * KM_PER_MI);
+  const { v_kmh, r_km } = calcV_fromH(p133.g_ms2, p133.R_km, h_km);
+  return { g_ms2: p133.g_ms2, R_km: p133.R_km, h_km, v_kmh, r_km };
 }
 
+
 function readP135() {
-  const g_ms2 = parseFloat(document.getElementById('p135-g').value) || 9.81;
-  const R_km  = parseFloat(document.getElementById('p135-R').value) || 6370;
-  const v_kmh = parseFloat(document.getElementById('p135-v').value) || 25000;
+  const u = activeUnits();
+  const gV = parseFloat(document.getElementById('p135-g').value);
+  const RV = parseFloat(document.getElementById('p135-R').value);
+  const vV = parseFloat(document.getElementById('p135-v').value);
+  let g_ms2, R_km, v_kmh;
+  if (u === 'SI') {
+    g_ms2 = isNaN(gV) ? CANONICAL.p135.g_ms2 : gV;
+    R_km  = isNaN(RV) ? CANONICAL.p135.R_km  : RV;
+    v_kmh = isNaN(vV) ? CANONICAL.p135.v_kmh : vV;
+  } else {
+    g_ms2 = (isNaN(gV) ? (CANONICAL.p135.g_ms2 / M_PER_FT) : gV) * M_PER_FT;
+    R_km  = (isNaN(RV) ? (CANONICAL.p135.R_km * MI_PER_KM)  : RV) * KM_PER_MI;
+    v_kmh = (isNaN(vV) ? (CANONICAL.p135.v_kmh * MI_PER_KM) : vV) * KM_PER_MI;
+  }
   const { h_km, r_km } = calcH_fromV(g_ms2, R_km, v_kmh);
   return { g_ms2, R_km, v_kmh, h_km, r_km };
 }
 
 // ─── Update Panels ───
-function updateSubPanels() {
+function updateSubPanels(updateOrbit = true) {
   const u = activeUnits();
   const p133 = readP133();
   const p134 = readP134();
   const p135 = readP135();
 
   // ── 11.133 ──
-  const v133_s = p133.v_kmh / 3600;  // km/s
+  const v133_s = p133.v_kmh / 3600;
   document.getElementById('p133-v-ms').textContent = fmt(v133_s, 'vel_s', 3);
   document.getElementById('p133-r-out').textContent = fmt(p133.r_km, 'len', 0);
   document.getElementById('p133-h-out').textContent = fmt(p133.h_km, 'len', 0);
-  // show native inputs in native units
-  document.getElementById('p133-v-disp').textContent = u === 'US'
-    ? `${p133.v_mih.toFixed(0)} mi/h → ${fmt(p133.v_kmh,'vel',1)}`
-    : `${p133.v_mih.toFixed(0)} mi/h = ${p133.v_kmh.toFixed(1)} km/h`;
+  document.getElementById('p133-v-disp').textContent =
+    `${fmt(p133.v_kmh, 'vel', 0)}  (= ${(v133_s).toFixed(3)} ${u==='SI'?'km/s':'mi/s'})`;
 
   // ── 11.134 ──
   const v134_s = p134.v_kmh / 3600;
   document.getElementById('p134-r-out').textContent = fmt(p134.r_km, 'len', 0);
   document.getElementById('p134-v-ms').textContent = fmt(v134_s, 'vel_s', 3);
   document.getElementById('p134-v-out').textContent = fmt(p134.v_kmh, 'vel', 0);
-  document.getElementById('p134-h-disp').textContent = u === 'US'
-    ? `${p134.h_mi.toFixed(0)} mi`
-    : `${p134.h_mi.toFixed(0)} mi = ${p134.h_km.toFixed(1)} km`;
+  document.getElementById('p134-h-disp').textContent = fmt(p134.h_km, 'len', 1);
 
   // ── 11.135 ──
   const v135_s = p135.v_kmh / 3600;
   document.getElementById('p135-v-ms').textContent = fmt(v135_s, 'vel_s', 3);
   document.getElementById('p135-r-out').textContent = fmt(p135.r_km, 'len', 0);
   document.getElementById('p135-h-out').textContent = fmt(p135.h_km, 'len', 0);
-  document.getElementById('p135-v-disp').textContent = u === 'US'
-    ? `${p135.v_kmh.toFixed(0)} km/h = ${fmt(p135.v_kmh,'vel',0)}`
-    : `${p135.v_kmh.toFixed(0)} km/h`;
+  document.getElementById('p135-v-disp').textContent =
+    `${fmt(p135.v_kmh, 'vel', 0)}  (= ${v135_s.toFixed(3)} ${u==='SI'?'km/s':'mi/s'})`;
 
-  // ── Update unit labels in result boxes ──
+  // ── Unit labels in result boxes ──
   const lenLbl = u === 'SI' ? 'km' : 'mi';
   const velLbl = u === 'SI' ? 'km/h' : 'mi/h';
   document.querySelectorAll('.lbl-len').forEach(e => e.textContent = lenLbl);
@@ -124,7 +218,6 @@ function updateSubPanels() {
     e.style.color      = u === 'SI' ? '#1d4ed8' : '#92400e';
     e.textContent      = u;
   });
-  // Update global badge
   const badge = document.getElementById('global-unit-badge');
   if (badge) {
     badge.textContent = u;
@@ -132,14 +225,17 @@ function updateSubPanels() {
     badge.style.color      = u === 'SI' ? '#1d4ed8' : '#92400e';
   }
 
-  // ── Simulation orbit from p135 ──
-  simState.hKm    = p135.h_km;
-  simState.vKmh   = p135.v_kmh;
-  simState.orbitRpx = BASE_Rpx + Math.min((p135.h_km / p135.R_km) * BASE_Rpx * 1.8, 130);
+  // ── Simulation from p135 (only update orbit geometry on explicit Apply/init) ──
+  simState.hKm  = p135.h_km;
+  simState.vKmh = p135.v_kmh;
+  if (updateOrbit) {
+    simState.orbitRpx = BASE_Rpx + Math.min((p135.h_km / p135.R_km) * BASE_Rpx * 1.8, 130);
+  }
   document.getElementById('card-sim-title').textContent =
     `🌍 Simulation — h = ${fmt(p135.h_km,'len',0)}, v = ${fmt(p135.v_kmh,'vel',0)}`;
   if (!isPlaying) updateScene(currentAngle, simState.orbitRpx, p135.v_kmh, p135.h_km, p135.R_km);
 }
+
 
 // ─── SVG Scene ───
 const NS = 'http://www.w3.org/2000/svg';
@@ -313,6 +409,37 @@ function resetAnimation() {
   const { hKm, vKmh, orbitRpx } = simState;
   updateScene(0, orbitRpx, 0, hKm);
   document.querySelectorAll('.step-card').forEach(c => c.classList.remove('visible'));
+  // Also reset inputs to canonical problem values
+  resetToCanonical();
+}
+
+// Restore problem inputs to the original textbook values
+function resetToCanonical() {
+  const u = activeUnits();
+  prevUnit = u;  // treat canonical as already in current unit (we convert)
+  // Temporarily force prevUnit to SI so the sync reads CANONICAL correctly,
+  // then we reset inputs from canonical SI values.
+  const c = CANONICAL;
+  if (u === 'SI') {
+    setInput('p133-g', c.p133.g_ms2.toFixed(4),            'lbl-133-g', 'g (m/s²)');
+    setInput('p133-R', c.p133.R_km.toFixed(1),              'lbl-133-R', 'R (km)');
+    setInput('p133-v', c.p133.v_kmh.toFixed(0),             'lbl-133-v', 'v (km/h)');
+    setInput('p134-h', c.p134.h_km.toFixed(1),              'lbl-134-h', 'h (km)');
+    setLbl('lbl-134-g','g (m/s²)'); setLbl('lbl-134-R','R (km)');
+    setInput('p135-g', c.p135.g_ms2.toFixed(4),             'lbl-135-g', 'g (m/s²)');
+    setInput('p135-R', c.p135.R_km.toFixed(1),              'lbl-135-R', 'R (km)');
+    setInput('p135-v', c.p135.v_kmh.toFixed(0),             'lbl-135-v', 'v (km/h)');
+  } else {
+    setInput('p133-g', (c.p133.g_ms2 / M_PER_FT).toFixed(2), 'lbl-133-g', 'g (ft/s²)');
+    setInput('p133-R', (c.p133.R_km * MI_PER_KM).toFixed(1),  'lbl-133-R', 'R (mi)');
+    setInput('p133-v', (c.p133.v_kmh * MI_PER_KM).toFixed(0), 'lbl-133-v', 'v (mi/h)');
+    setInput('p134-h', (c.p134.h_km * MI_PER_KM).toFixed(1),  'lbl-134-h', 'h (mi)');
+    setLbl('lbl-134-g','g (ft/s²)'); setLbl('lbl-134-R','R (mi)');
+    setInput('p135-g', (c.p135.g_ms2 / M_PER_FT).toFixed(2),  'lbl-135-g', 'g (ft/s²)');
+    setInput('p135-R', (c.p135.R_km * MI_PER_KM).toFixed(1),   'lbl-135-R', 'R (mi)');
+    setInput('p135-v', (c.p135.v_kmh * MI_PER_KM).toFixed(0),  'lbl-135-v', 'v (mi/h)');
+  }
+  updateSubPanels(true);
 }
 
 function openModal() {
@@ -380,6 +507,7 @@ function switchTab(id) {
 // ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
   buildScene();
+  syncInputsToUnits();  // set inputs to SI on load (converts original US problem data)
   updateSubPanels();
   updateScene(0, simState.orbitRpx, simState.vKmh, simState.hKm);
 
@@ -394,12 +522,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Global units toggle
-  document.getElementById('units-select').addEventListener('change', updateSubPanels);
+  // Global units toggle — sync inputs and refresh labels only (orbit stays fixed)
+  document.getElementById('units-select').addEventListener('change', () => {
+    syncInputsToUnits();
+    updateSubPanels(false);   // false = don't move the orbit
+  });
 
-  // Apply buttons
+  // Apply buttons — user explicitly changed inputs → update orbit too
   ['133','134','135'].forEach(id => {
-    document.getElementById(`btn-apply-${id}`)?.addEventListener('click', updateSubPanels);
+    document.getElementById(`btn-apply-${id}`)?.addEventListener('click', () => updateSubPanels(true));
   });
 
   // Slider

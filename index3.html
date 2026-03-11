@@ -129,12 +129,12 @@
           Satellite at given <b>v</b> → find orbital altitude <b>h</b>. Condition: aₙ = g(R/r)² = v²/r.
         </div>
         <div class="param-row">
-          <label>g (ft/s²)</label>
-          <input type="number" id="p133-g" value="32.2" step="0.1">
-          <label>R (mi)</label>
-          <input type="number" id="p133-R" value="3960" step="10">
-          <label>v (mi/h)</label>
-          <input type="number" id="p133-v" value="16500" step="100">
+          <label id="lbl-133-g">g (m/s²)</label>
+          <input type="number" id="p133-g" value="9.81" step="0.01">
+          <label id="lbl-133-R">R (km)</label>
+          <input type="number" id="p133-R" value="6371" step="10">
+          <label id="lbl-133-v">v (km/h)</label>
+          <input type="number" id="p133-v" value="26554" step="100">
           <button class="btn-sm" id="btn-apply-133">⟳ Apply</button>
         </div>
         <div class="result-row">
@@ -168,12 +168,12 @@
           Space shuttle at altitude <b>h</b> → find orbital speed <b>v</b>. Same g and R as 11.133.
         </div>
         <div class="param-row">
-          <label>g (ft/s²)</label>
-          <input type="number" value="32.2" step="0.1" disabled title="Edit in 11.133">
-          <label>R (mi)</label>
-          <input type="number" value="3960" step="10" disabled title="Edit in 11.133">
-          <label>h (mi)</label>
-          <input type="number" id="p134-h" value="140" step="10">
+          <label id="lbl-134-g">g (m/s²)</label>
+          <input type="number" value="9.81" step="0.01" disabled title="Edit in 11.133">
+          <label id="lbl-134-R">R (km)</label>
+          <input type="number" value="6371" step="10" disabled title="Edit in 11.133">
+          <label id="lbl-134-h">h (km)</label>
+          <input type="number" id="p134-h" value="225" step="10">
           <button class="btn-sm" id="btn-apply-134">⟳ Apply</button>
         </div>
         <div class="result-row">
@@ -208,11 +208,11 @@
           Same as 11.133 in <b>SI units</b>: R = 6370 km, g = 9.81 m/s². Given <b>v</b> find altitude <b>h</b>.
         </div>
         <div class="param-row">
-          <label>g (m/s²)</label>
+          <label id="lbl-135-g">g (m/s²)</label>
           <input type="number" id="p135-g" value="9.81" step="0.01">
-          <label>R (km)</label>
+          <label id="lbl-135-R">R (km)</label>
           <input type="number" id="p135-R" value="6370" step="10">
-          <label>v (km/h)</label>
+          <label id="lbl-135-v">v (km/h)</label>
           <input type="number" id="p135-v" value="25000" step="100">
           <button class="btn-sm" id="btn-apply-135">⟳ Apply</button>
         </div>
