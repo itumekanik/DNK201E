@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satellite Circular Orbit — Kinematics of Particles</title>
+  <link rel="stylesheet" href="style3.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>🛰 Circular Orbit — Normal Acceleration (Probs. 11.133 / 11.134 / 11.135)</h1>
+    </div>
+    <div class="controls">
+      <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
+      <button class="btn btn-primary" id="btn-play">▶ Play</button>
+      <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
+      <input type="range" class="time-slider" id="time-slider" min="0" max="1" step="0.005" value="0"
+        oninput="document.getElementById('slider-val').textContent = (parseFloat(this.value)*360).toFixed(1) + '°'">
+      <span class="slider-label" id="slider-val">0.0°</span>
+    </div>
+  </div>
+
+  <!-- Middle -->
+  <div class="mid">
+
+    <!-- Simulation -->
+    <div class="card">
+      <div class="card-title"><span>🌍</span> Orbital Simulation (using SI values from 11.135)</div>
+      <div class="sim-wrap">
+        <svg id="sim-svg" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="live-data">
+        <div class="data-item"><div class="label">θ (angle)</div><div class="value" id="live-angle">0.0°</div></div>
+        <div class="data-item"><div class="label">r (from center)</div><div class="value" id="live-r">6370 km</div></div>
+        <div class="data-item"><div class="label">v (orbital)</div><div class="value" id="live-v">0 km/h</div></div>
+        <div class="data-item"><div class="label">h (altitude)</div><div class="value" id="live-h">0 km</div></div>
+      </div>
+    </div>
+
+    <!-- Sub-problem Panels -->
+    <div class="card">
+      <div class="card-title"><span>📊</span> Problem Results</div>
+      <div class="tabs">
+        <div class="tab active" data-tab="panel133">11.133 — Find h (US)</div>
+        <div class="tab" data-tab="panel134">11.134 — Find v (US)</div>
+        <div class="tab" data-tab="panel135">11.135 — Find h (SI)</div>
+      </div>
+
+      <!-- 11.133 -->
+      <div class="sub-panel active" id="panel133">
+        <div class="info-box">
+          A satellite travels at <b>v = 16,500 mi/h</b> in a circular orbit.
+          Given g = 32.2 ft/s², R = 3960 mi, find the altitude <b>h</b> above
+          Earth's surface. Condition: a<sub>n</sub> = g(R/r)² = v²/r.
+        </div>
+        <div class="result-row">
+          <div class="result-box">
+            <div class="rb-label">v (given)</div>
+            <div class="rb-formula">16,500 mi/h = 4.583 mi/s</div>
+            <div class="rb-value">16,500 mi/h</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">r from center</div>
+            <div class="rb-formula">r = gR²/v²</div>
+            <div class="rb-value" id="p133-r">— mi</div>
+          </div>
+        </div>
+        <div class="result-row">
+          <div class="result-box highlight">
+            <div class="rb-label">h = r − R  (Answer)</div>
+            <div class="rb-formula">h = r − 3960 mi</div>
+            <div class="rb-value" id="p133-h">— mi</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">Condition checked</div>
+            <div class="rb-formula">a_n = g(R/r)² = v²/r ✓</div>
+            <div class="rb-value" style="color:var(--accent-green)">✓ Valid orbit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11.134 -->
+      <div class="sub-panel" id="panel134">
+        <div class="info-box">
+          A space shuttle travels in a circular orbit <b>h = 140 mi</b> above Earth's surface.
+          Find the orbital speed <b>v</b>. Uses same constants as 11.133.
+        </div>
+        <div class="result-row">
+          <div class="result-box">
+            <div class="rb-label">h (given)</div>
+            <div class="rb-formula">h = 140 mi</div>
+            <div class="rb-value">140 mi</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">r from center</div>
+            <div class="rb-formula">r = R + h = 3960 + 140</div>
+            <div class="rb-value">4,100 mi</div>
+          </div>
+        </div>
+        <div class="result-row">
+          <div class="result-box highlight">
+            <div class="rb-label">v (Answer)</div>
+            <div class="rb-formula">v = √(gR²/r)</div>
+            <div class="rb-value" id="p134-v">— mi/h</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">Condition checked</div>
+            <div class="rb-formula">a_n = g(R/r)² = v²/r ✓</div>
+            <div class="rb-value" style="color:var(--accent-green)">✓ Valid orbit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11.135 -->
+      <div class="sub-panel" id="panel135">
+        <div class="info-box">
+          Same type as 11.133 but in <b>SI units</b>: R = 6370 km, g = 9.81 m/s².
+          Satellite travels at <b>v = 25,000 km/h</b>. Find altitude <b>h</b>.
+        </div>
+        <div class="result-row">
+          <div class="result-box">
+            <div class="rb-label">v (given)</div>
+            <div class="rb-formula">25,000 km/h = 6.944 km/s</div>
+            <div class="rb-value">25,000 km/h</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">r from center</div>
+            <div class="rb-formula">r = gR²/v²  (consistent units)</div>
+            <div class="rb-value" id="p135-r">— km</div>
+          </div>
+        </div>
+        <div class="result-row">
+          <div class="result-box highlight">
+            <div class="rb-label">h = r − R  (Answer)</div>
+            <div class="rb-formula">h = r − 6370 km</div>
+            <div class="rb-value" id="p135-h">— km</div>
+          </div>
+          <div class="result-box">
+            <div class="rb-label">Condition checked</div>
+            <div class="rb-formula">a_n = g(R/r)² = v²/r ✓</div>
+            <div class="rb-value" style="color:var(--accent-green)">✓ Valid orbit</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom: Solution Steps -->
+  <div class="bottom">
+    <div class="step-card">
+      <div class="step-label">Key Principle</div>
+      <h3>Normal Acceleration</h3>
+      <div class="formula">a_n = v² / r</div>
+      <div class="formula">a_n = g·(R/r)²</div>
+    </div>
+    <div class="step-card">
+      <div class="step-label">Orbital Speed Formula</div>
+      <h3>Equate & Solve</h3>
+      <div class="formula">v²/r = g·(R/r)²</div>
+      <div class="formula">v = √(g·R²/r)</div>
+    </div>
+    <div class="step-card">
+      <div class="step-label">Find Altitude</div>
+      <h3>Solve for r, then h</h3>
+      <div class="formula">r = g·R²/ v²</div>
+      <div class="result">h = r − R</div>
+    </div>
+    <div class="step-card">
+      <div class="step-label">Unit Care</div>
+      <h3>Consistent Units</h3>
+      <div class="formula">SI: g→km/s², R→km</div>
+      <div class="formula">US: g→mi/s², R→mi</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Theory Modal -->
+<div class="modal-overlay" id="theory-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📖 Theoretical Solution — Circular Satellite Orbit</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section">
+        <h3>🔹 Problem Statement</h3>
+        <p>A satellite travels in a circular orbit around the Earth. For indefinite circular orbit, the normal component of the satellite's acceleration must equal the gravitational acceleration at that altitude:</p>
+        <div class="modal-formula">$$ a_n = g\left(\frac{R}{r}\right)^2 $$</div>
+        <p>where <b>g</b> = surface gravity, <b>R</b> = Earth's radius, <b>r</b> = distance from Earth's center to satellite.</p>
+        <p><b>Three problems</b> all use this condition — differing only in what is known/unknown and unit system.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>🔹 Core Derivation</h3>
+        <p>For circular motion, the normal (centripetal) acceleration is:</p>
+        <div class="modal-formula">$$ a_n = \frac{v^2}{r} $$</div>
+        <p>Setting this equal to the gravitational acceleration at radius r:</p>
+        <div class="modal-formula">$$ \frac{v^2}{r} = g\left(\frac{R}{r}\right)^2 = \frac{gR^2}{r^2} $$</div>
+        <p>Solving for orbital speed:</p>
+        <div class="modal-formula">$$ v = \sqrt{\frac{g R^2}{r}} \qquad \text{or} \qquad r = \frac{gR^2}{v^2} $$</div>
+        <p>And since r = R + h, the altitude is:</p>
+        <div class="modal-formula">$$ h = r - R = \frac{gR^2}{v^2} - R $$</div>
+      </div>
+
+      <div class="modal-section">
+        <h3>🔹 Prob. 11.133 — Find h at v = 16,500 mi/h (US Units)</h3>
+        <div class="modal-col-2">
+          <div class="modal-col">
+            <h4>Given</h4>
+            <p>g = 32.2 ft/s² = 32.2/5280 mi/s²</p>
+            <p>R = 3960 mi</p>
+            <p>v = 16,500 mi/h = 4.583 mi/s</p>
+          </div>
+          <div class="modal-col">
+            <h4>Solution</h4>
+            <p>r = gR²/v² → compute r</p>
+            <p>h = r − R</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>🔹 Prob. 11.134 — Find v at h = 140 mi (US Units)</h3>
+        <div class="modal-col-2">
+          <div class="modal-col">
+            <h4>Given</h4>
+            <p>Same g and R as 11.133</p>
+            <p>h = 140 mi → r = 4100 mi</p>
+          </div>
+          <div class="modal-col">
+            <h4>Solution</h4>
+            <p>v = √(gR²/r)</p>
+            <p>Convert to mi/h (× 3600)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>🔹 Prob. 11.135 — Find h at v = 25,000 km/h (SI Units)</h3>
+        <div class="modal-col-2">
+          <div class="modal-col">
+            <h4>Given</h4>
+            <p>g = 9.81 m/s² = 0.00981 km/s²</p>
+            <p>R = 6370 km</p>
+            <p>v = 25,000 km/h = 6.944 km/s</p>
+          </div>
+          <div class="modal-col">
+            <h4>Solution</h4>
+            <p>r = gR²/v²</p>
+            <p>h = r − R</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<script src="app3.js"></script>
+</body>
+</html>
