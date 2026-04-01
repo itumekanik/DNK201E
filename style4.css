@@ -85,22 +85,26 @@ html, body {
   font-size: 0.7rem; color: var(--text-secondary); min-width: 36px;
 }
 
-/* ─── Param inputs in header ─── */
-.param-row-header {
-  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+/* ─── Param inputs inside card (matching index3 pattern) ─── */
+.param-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  align-items: center; margin-bottom: 4px;
+  padding: 6px 10px; background: var(--bg-body);
+  border-radius: 8px; border: 1px solid var(--border);
+  flex-shrink: 0;
 }
-.param-row-header label {
+.param-row label {
   font-size: 0.64rem; font-weight: 700;
   color: var(--text-secondary); white-space: nowrap;
 }
-.param-row-header input {
-  width: 70px; padding: 3px 6px;
+.param-row input {
+  width: 78px; padding: 3px 6px;
   border: 1px solid var(--border); border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem; color: var(--text-primary);
   background: var(--bg-card); outline: none;
 }
-.param-row-header input:focus {
+.param-row input:focus {
   border-color: var(--accent-purple);
   box-shadow: 0 0 0 2px rgba(124,58,237,0.12);
 }

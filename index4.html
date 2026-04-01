@@ -12,28 +12,15 @@
 
   <!-- ─── Header ─── -->
   <div class="header">
-    <div>
+    <div class="header-left">
       <h1>💥 P16.48 — Perfectly Plastic Impact: Satellite &amp; Meteor</h1>
     </div>
     <div class="controls">
-      <!-- Editable inputs -->
-      <div class="param-row-header">
-        <label>m_S (kg)</label>
-        <input id="inp-mS" type="number" value="400" step="10" min="1">
-        <label>m_M (kg)</label>
-        <input id="inp-mM" type="number" value="1" step="0.1" min="0.01">
-        <label>v_S (km/s)</label>
-        <input id="inp-vS" type="number" value="7" step="0.5" min="0">
-        <label>v_M (km/s)</label>
-        <input id="inp-vM" type="number" value="12" step="0.5" min="0">
-        <label>φ (°)</label>
-        <input id="inp-phi" type="number" value="45" step="5" min="0" max="90">
-        <button class="btn-sm" id="btn-apply">⟳ Apply</button>
-      </div>
       <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
       <button class="btn btn-primary" id="btn-play">▶ Play</button>
       <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
-      <input type="range" class="time-slider" id="time-slider" min="0" max="1" step="0.005" value="0">
+      <input type="range" class="time-slider" id="time-slider" min="0" max="1" step="0.005" value="0"
+        oninput="document.getElementById('slider-val').textContent = (parseFloat(this.value)*100).toFixed(0)+'%'">
       <span class="slider-label" id="slider-val">0%</span>
     </div>
   </div>
@@ -73,9 +60,23 @@
       <div class="results-card">
 
         <div class="info-box">
-          Satellite <b>S</b> (m_S = 400 kg, v_S = 7 km/s →) is struck by meteor <b>M</b>
-          (m_M = 1 kg, v_M = 12 km/s at φ = 45° above −x axis). Perfectly plastic impact:
-          meteor is embedded. Find post-impact speed <b>V</b> and angle <b>β</b>.
+          Satellite <b>S</b> moving at <b>v_S →</b> struck by meteor <b>M</b> at angle <b>φ</b> above −x axis.
+          Perfectly plastic impact (meteor embedded). Find post-impact speed <b>V</b> and deflection angle <b>β</b>.
+        </div>
+
+        <!-- Editable Parameters -->
+        <div class="param-row">
+          <label id="lbl-mS">m_S (kg)</label>
+          <input type="number" id="inp-mS" value="400" step="10" min="1">
+          <label id="lbl-mM">m_M (kg)</label>
+          <input type="number" id="inp-mM" value="1" step="0.1" min="0.01">
+          <label id="lbl-vS">v_S (km/s)</label>
+          <input type="number" id="inp-vS" value="7" step="0.5" min="0">
+          <label id="lbl-vM">v_M (km/s)</label>
+          <input type="number" id="inp-vM" value="12" step="0.5" min="0">
+          <label id="lbl-phi">φ (°)</label>
+          <input type="number" id="inp-phi" value="45" step="5" min="0" max="90">
+          <button class="btn-sm" id="btn-apply">⟳ Apply</button>
         </div>
 
         <!-- Step 1: Momentum components before -->
@@ -137,6 +138,7 @@
       </div>
     </div>
   </div>
+
 
   <!-- ─── Bottom Steps ─── -->
   <div class="bottom">
