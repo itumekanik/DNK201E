@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rack & Pinion Linkage - Animated Physics</title>
+  <link rel="stylesheet" href="style5.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+</head>
+
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>⚙ Rack & Pinion Linkage — Relative Velocity</h1>
+        <div class="param-inputs">
+          <div class="param-group">
+            <label>ω_AB (rad/s)</label>
+            <input type="number" id="input-w" value="10" step="1" min="1">
+          </div>
+          <button class="btn btn-apply" id="btn-apply">⟳ Apply</button>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
+        <button class="btn btn-primary" id="btn-play">▶ Play / Pause</button>
+        <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
+        <input type="range" class="time-slider" id="time-slider" min="0" max="0.25" step="0.001" value="0"
+          oninput="document.getElementById('slider-val').textContent = parseFloat(this.value).toFixed(3) + ' s'">
+        <span class="slider-label" id="slider-val">0.000 s</span>
+      </div>
+    </div>
+
+    <!-- Middle Row: Sim + Results -->
+    <div class="mid">
+      <div class="card sim-card">
+        <div class="card-title"><span>🎯</span> Simulation</div>
+        <div class="sim-svg-container">
+          <svg id="sim-svg" viewBox="0 0 500 400" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <pattern id="ground-hatch" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 0,10 L 10,0 Z" stroke="#94a3b8" stroke-width="1" />
+              </pattern>
+            </defs>
+            <g id="mechanism" transform="translate(100, 280)">
+              <!-- Ground visual A -->
+              <rect x="-15" y="10" width="30" height="15" fill="url(#ground-hatch)"/>
+              <line x1="-20" y1="10" x2="20" y2="10" stroke="#475569" stroke-width="2"/>
+              <!-- Ground visual D -->
+              <rect x="205" y="10" width="30" height="15" fill="url(#ground-hatch)"/>
+              <line x1="200" y1="10" x2="240" y2="10" stroke="#475569" stroke-width="2"/>
+              
+              <!-- Rack -->
+              <g id="rackGroup">
+                <rect x="280" y="-200" width="20" height="400" fill="#cbd5e1" stroke="#475569" stroke-width="2"/>
+                <path id="rack-teeth" fill="#94a3b8" stroke="#475569" stroke-width="1.5"></path>
+              </g>
+              
+              <!-- Gear (Link CD) -->
+              <g id="gearGroup">
+                <circle cx="220" cy="0" r="60" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+                <path id="gear-teeth" fill="#fde047" stroke="#ca8a04" stroke-width="1.5"></path>
+                <circle cx="220" cy="0" r="10" fill="#475569"/>
+                <!-- Arm CD inside gear -->
+                <line x1="220" y1="0" id="link-cd" x2="220" y2="-100" stroke="#eab308" stroke-width="14" stroke-linecap="round"/>
+                <circle id="pin-c" cx="220" cy="-100" r="5" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+              </g>
+
+              <!-- Link BC -->
+              <line id="link-bc" x1="60" y1="-120" x2="220" y2="-100" stroke="#cbd5e1" stroke-width="10" stroke-linecap="round"/>
+              <circle id="pin-b-bc" cx="60" cy="-120" r="4" fill="#1e293b"/>
+              
+              <!-- Link AB -->
+              <line id="link-ab" x1="0" y1="0" x2="60" y2="-120" stroke="#64748b" stroke-width="14" stroke-linecap="round"/>
+              <circle cx="0" cy="0" r="6" fill="#1e293b" stroke="#e2e8f0" stroke-width="2"/>
+              <circle id="pin-b-ab" cx="60" cy="-120" r="5" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+              
+              <!-- Point Labels -->
+              <text x="-20" y="-10" fill="#1e293b" font-size="14" font-weight="800">A</text>
+              <text x="235" y="-10" fill="#1e293b" font-size="14" font-weight="800">D</text>
+              <text id="label-b" x="45" y="-135" fill="#1e293b" font-size="14" font-weight="800">B</text>
+              <text id="label-c" x="205" y="-115" fill="#1e293b" font-size="14" font-weight="800">C</text>
+            </g>
+          </svg>
+        </div>
+        <div class="live-data">
+          <div class="data-item">
+            <div class="label">ω_AB</div>
+            <div class="value" id="val-wab">-10.0 rad/s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">ω_BC</div>
+            <div class="value" id="val-wbc">3.75 rad/s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">ω_CD</div>
+            <div class="value" id="val-wcd">-12.75 rad/s</div>
+          </div>
+          <div class="data-item" style="border-color:#e11d48">
+            <div class="label" style="color:#e11d48">v_Rack</div>
+            <div class="value" id="val-vr" style="color:#e11d48">-76.50 in/s (-6.375 ft/s)</div>
+          </div>
+          <!-- Geometry -->
+          <div class="data-item" style="background: #f0fdf4; border-color: #bbf7d0;">
+            <div class="label" style="color: #166534;">B (x, y)</div>
+            <div class="value" id="val-posb" style="color: #15803d; font-size: 0.65rem;">6.00, 12.00 in</div>
+          </div>
+          <div class="data-item" style="background: #f0fdf4; border-color: #bbf7d0;">
+            <div class="label" style="color: #166534;">C (x, y)</div>
+            <div class="value" id="val-posc" style="color: #15803d; font-size: 0.65rem;">22.00, 10.00 in</div>
+          </div>
+          <div class="data-item" style="background: #f8fafc;">
+            <div class="label">L_AB, L_BC</div>
+            <div class="value" style="font-size: 0.65rem; color: #475569;">13.42, 16.12 in</div>
+          </div>
+          <div class="data-item" style="background: #f8fafc;">
+            <div class="label">L_CD, R_gear</div>
+            <div class="value" style="font-size: 0.65rem; color: #475569;">10.00, 6.00 in</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card graph-card">
+        <div class="card-title"><span>📈</span> Velocities vs Time</div>
+        <svg id="v-graph" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+    </div>
+
+    <!-- Bottom: Solution Steps -->
+    <div class="bottom">
+      <div class="step-card">
+        <div class="step-label">Step A</div>
+        <h3>Velocity of Point B</h3>
+        <div class="formula">r_B/A = (6i + 12j) in</div>
+        <div class="formula">v_B = ω_AB × r_B/A = (-10k) × (6i + 12j)</div>
+        <div class="result">v_B = 120 i - 60 j &nbsp;(in/s)</div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Step B</div>
+        <h3>Velocity of Point C Constraint</h3>
+        <div class="formula">v_C = v_B + ω_BC × r_C/B &nbsp; (Link BC)</div>
+        <div class="formula">v_C = ω_CD × r_C/D &nbsp; (Link CD / Gear)</div>
+        <div class="result">v_Cx = 120 + 2·ω_BC = -10·ω_CD</div>
+        <div class="result">v_Cy = -60 + 16·ω_BC = 0</div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Step C</div>
+        <h3>Solve for \omega_{CD} and Rack Velocity</h3>
+        <div class="formula">ω_BC = 60 / 16 = 3.75 rad/s</div>
+        <div class="formula">ω_CD = -(120 + 2(3.75)) / 10 = -12.75 rad/s</div>
+        <div class="formula">v_R = ω_CD × r_gear = -12.75 × 6</div>
+        <div class="result">v_{Rack} = 76.5 in/s (6.375 ft/s) &nbsp;[Downward]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theory Modal -->
+  <div class="modal-overlay" id="theory-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📖 Theoretical Solution — Example 17.3</h2>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>🔹 Problem Statement</h3>
+          <p>Bar AB rotates with a clockwise angular velocity of \( \omega_{AB} = 10 \text{ rad/s} \). Determine the vertical velocity \( v_R \) of the rack of the rack-and-pinion gear. System given parameters at the initial snapshot:</p>
+          <ul>
+            <li>\( A = (0, 0) \), \( B = (6, 12) \), \( C = (22, 10) \), \( D = (22, 0) \) in inches.</li>
+            <li>Pinion touches the rack at radius \( r_{gear} = 6 \text{ in} \).</li>
+          </ul>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 General Kinematic Equations</h3>
+          <p>The velocities of pins B and C are fundamentally coupled by the relative velocity equation:</p>
+          <div class="modal-formula">
+            $$ \vec{v}_B = \vec{\omega}_{AB} \times \vec{r}_{B/A} $$
+            $$ \vec{v}_C = \vec{v}_B + \vec{\omega}_{BC} \times \vec{r}_{C/B} $$
+          </div>
+          <p>Because C is rigidly attached to the pinion which pivots at D:</p>
+          <div class="modal-formula">
+            $$ \vec{v}_C = \vec{\omega}_{CD} \times \vec{r}_{C/D} $$
+          </div>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 Solution</h3>
+          <p>Given \( \vec{\omega}_{AB} = -10 \hat{k} \) rad/s. Then:
+            $$ \vec{v}_B = (-10 \hat{k}) \times (6\hat{i} + 12\hat{j}) = 120\hat{i} - 60\hat{j} \text{ in/s} $$
+          </p>
+          <p>For link BC:
+            $$ \vec{r}_{C/B} = (22 - 6)\hat{i} + (10 - 12)\hat{j} = 16\hat{i} - 2\hat{j} $$
+            $$ \vec{v}_C = (120\hat{i} - 60\hat{j}) + (\omega_{BC}\hat{k} \times (16\hat{i} - 2\hat{j})) $$
+            $$ \vec{v}_C = (120 + 2\omega_{BC})\hat{i} + (-60 + 16\omega_{BC})\hat{j} $$
+          </p>
+          <p>For link CD:
+            $$ \vec{r}_{C/D} = (22 - 22)\hat{i} + (10 - 0)\hat{j} = 10\hat{j} $$
+            $$ \vec{v}_C = \omega_{CD}\hat{k} \times 10\hat{j} = -10\omega_{CD}\hat{i} $$
+          </p>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 Conclusion</h3>
+          <p>Equating components of \( \vec{v}_C \):
+            $$ y\text{-dir}: -60 + 16\omega_{BC} = 0 \implies \omega_{BC} = 3.75 \text{ rad/s} $$
+            $$ x\text{-dir}: 120 + 2(3.75) = -10\omega_{CD} \implies \omega_{CD} = -12.75 \text{ rad/s} $$
+          </p>
+          <p>The rack is vertically driven by the right edge of the gear.
+            $$ \vec{v}_{Rack} = \vec{\omega}_{CD} \times \vec{r}_{edge} = (-12.75 \hat{k}) \times (6 \hat{i}) = -76.5 \hat{j} \text{ in/s} $$
+          </p>
+          <div class="modal-result" id="modal-result-ans">$$ v_{Rack} = 76.5 \text{ in/s } (6.375 \text{ ft/s}) \ (\downarrow) $$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="app5.js"></script>
+</body>
+
+</html>
