@@ -9,36 +9,17 @@ let phi = 45;       // deg  meteor angle below horizontal (into satellite)
 function solve() {
   const phiR = phi * Math.PI / 180;
   const mTot = mS + mM;
-
-  // Momentum components before impact
-  const px_before = mS * vS + mM * vM * Math.cos(Math.PI - phiR); // meteor comes from lower-right
-  const py_before = 0       + mM * vM * (-Math.sin(phiR));         // upward = +y, meteor goes upward at φ above negative x
-
-  // Actually: satellite moves in +x, meteor at 45° above negative-x axis (as drawn)
-  // Meteor direction: upper-right to lower-left means vector = (-cos45, -sin45)? 
-  // From the figure: meteor travels at 45° BELOW the satellite path, going UP-LEFT into satellite
-  // i.e. meteor velocity = vM * (-cos(phi), +sin(phi))  [going left and up toward satellite]
-  // But the figure shows M at bottom, moving up-left at 45°.
-  // satellite: vS in +x direction.  meteor: 12 km/s at 45° from below (up-left).
-  // meteor velocity vector: (-vM cos45, +vM sin45)
-  const vmx = -vM * Math.cos(phiR);  // − x component
-  const vmy =  vM * Math.sin(phiR);  // + y component (upward)
-
-  // Conservation of linear momentum
+  const vmx = -vM * Math.cos(phiR);
+  const vmy =  vM * Math.sin(phiR);
   const Vx = (mS * vS + mM * vmx) / mTot;
   const Vy = (mS * 0  + mM * vmy) / mTot;
-
-  const V  = Math.sqrt(Vx * Vx + Vy * Vy);  // km/s
-  // β = angle between post-impact velocity and satellite's original path (+x axis)
-  const beta = Math.atan2(Math.abs(Vy), Vx) * 180 / Math.PI; // degrees
-
+  const V  = Math.sqrt(Vx * Vx + Vy * Vy);
+  const beta = Math.atan2(Math.abs(Vy), Vx) * 180 / Math.PI;
   return { mTot, vmx, vmy, Vx, Vy, V, beta, phiR };
 }
 
-// ─── Update Results Display ───
 function updateResults() {
   const r = solve();
-
   document.getElementById('res-mTot').textContent  = r.mTot.toFixed(0) + ' kg';
   document.getElementById('res-px').textContent    = ((mS*vS + mM*r.vmx)).toFixed(3) + ' kg·km/s';
   document.getElementById('res-py').textContent    = (mM * r.vmy).toFixed(3)          + ' kg·km/s';
@@ -47,7 +28,6 @@ function updateResults() {
   document.getElementById('res-V').textContent     = r.V.toFixed(4)  + ' km/s';
   document.getElementById('res-V-kmh').textContent = (r.V * 3600).toFixed(0) + ' km/h';
   document.getElementById('res-beta').textContent  = r.beta.toFixed(3) + '°';
-
   updateSim(0);
 }
 
@@ -61,310 +41,320 @@ function elSVG(tag, attrs, text) {
 }
 
 const W = 560, H = 380, CX = W * 0.52, CY = H * 0.48;
-
 let animId = null, isPlaying = false, animT = 0;
-const ANIM_DUR = 2.5; // seconds total
+const ANIM_DUR = 3.5; // Longer duration for dramatic effect
 
 function buildScene() {
   const svg = document.getElementById('sim-svg');
   svg.innerHTML = '';
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-  // Dark space BG
-  svg.appendChild(elSVG('rect', { x:0,y:0,width:W,height:H, fill:'#0c0f1a' }));
+  // Dark Space BG with deep gradient
+  const bgGrad = elSVG('linearGradient', {id:'bgGrad', x1:'0%', y1:'0%', x2:'0%', y2:'100%'});
+  bgGrad.innerHTML = `<stop offset="0%" stop-color="#020617"/>
+                      <stop offset="50%" stop-color="#0f172a"/>
+                      <stop offset="100%" stop-color="#020617"/>`;
+  svg.appendChild(bgGrad);
+  svg.appendChild(elSVG('rect', { x:0,y:0,width:W,height:H, fill:'url(#bgGrad)' }));
 
-  // Stars
-  for (let i = 0; i < 100; i++) {
-    const x = ((Math.sin(i*9.1+3)*0.5+0.5)*W)|0;
-    const y = ((Math.cos(i*4.7+1)*0.5+0.5)*H)|0;
-    const r = i%8===0?1.5:0.7;
-    svg.appendChild(elSVG('circle',{cx:x,cy:y,r,fill:'white',opacity:(0.2+Math.abs(Math.sin(i))*0.5).toFixed(2)}));
+  // Parallax Stars Groups
+  const starsBg = elSVG('g', {id:'stars-bg'});
+  const starsFg = elSVG('g', {id:'stars-fg'});
+  for (let i = 0; i < 150; i++) {
+    const x = Math.random() * W * 1.5 - W*0.2; // wider for parallax
+    const y = Math.random() * H;
+    const r = Math.random() * 1.5;
+    const op = (Math.random() * 0.8 + 0.2).toFixed(2);
+    if(r < 0.8) starsBg.appendChild(elSVG('circle',{cx:x,cy:y,r,fill:'white',opacity:op}));
+    else starsFg.appendChild(elSVG('circle',{cx:x,cy:y,r,fill:'white',opacity:op}));
   }
+  svg.appendChild(starsBg);
+  svg.appendChild(starsFg);
 
-  // Defs
+  // Defs (Gradients & Filters)
   const defs = elSVG('defs');
   defs.innerHTML = `
-    <marker id="arrowS" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0 8 3 0 6" fill="#3b82f6"/></marker>
-    <marker id="arrowM" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0 8 3 0 6" fill="#f59e0b"/></marker>
-    <marker id="arrowV" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0 8 3 0 6" fill="#34d399"/></marker>
-    <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0 8 3 0 6" fill="#a78bfa"/></marker>
-    <filter id="glow"><feGaussianBlur stdDeviation="3" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="explodeGlow"><feGaussianBlur stdDeviation="6" result="g"/>
-      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    <linearGradient id="satGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="panelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1"/><stop offset="50%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <radialGradient id="meteorGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fde047"/><stop offset="40%" stop-color="#ea580c"/><stop offset="100%" stop-color="#78350f"/>
+    </radialGradient>
+    <marker id="arrowS" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#60a5fa"/></marker>
+    <marker id="arrowM" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#fbbf24"/></marker>
+    <marker id="arrowV" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#34d399"/></marker>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="trailGlow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="explodeGlow"><feGaussianBlur stdDeviation="8" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  `;
   svg.appendChild(defs);
 
-  // Dashed reference line (satellite path extended)
-  const refLen = 220;
-  const refLine = elSVG('line',{
-    x1: CX - refLen, y1: CY, x2: CX + refLen, y2: CY,
-    stroke:'rgba(59,130,246,0.2)', 'stroke-width':1, 'stroke-dasharray':'8,5'
-  });
-  refLine.id='ref-line'; svg.appendChild(refLine);
+  // Dashed reference line for trajectory
+  const refLine = elSVG('line',{x1: 0, y1: CY, x2: W, y2: CY, stroke:'rgba(59,130,246,0.15)', 'stroke-width':1.5, 'stroke-dasharray':'10,8'});
+  svg.appendChild(refLine);
 
-  // β angle arc (drawn after impact)
-  const betaArc = elSVG('path',{d:'M0,0',fill:'none',stroke:'rgba(167,139,250,0.7)','stroke-width':1.5});
+  // Beta Info Arc
+  const betaArc = elSVG('path',{d:'M0,0',fill:'none',stroke:'rgba(52,211,153,0.8)','stroke-width':2, 'stroke-dasharray':'4,4'});
   betaArc.id='beta-arc'; svg.appendChild(betaArc);
-  const betaLbl = elSVG('text',{x:0,y:0,fill:'#a78bfa','font-size':'11px','font-weight':'700',
-    'font-family':"'Inter',sans-serif",'text-anchor':'middle'},'β');
+  const betaLbl = elSVG('text',{x:0,y:0,fill:'#34d399','font-size':'12px','font-weight':'700','font-family':"'Inter',sans-serif",'text-anchor':'middle'});
   betaLbl.id='beta-lbl'; svg.appendChild(betaLbl);
 
-  // Meteor path line (pre-impact ghost)
-  const meteorTrail = elSVG('line',{x1:0,y1:0,x2:0,y2:0,
-    stroke:'rgba(245,158,11,0.15)','stroke-width':1,'stroke-dasharray':'5,4'});
-  meteorTrail.id='meteor-trail'; svg.appendChild(meteorTrail);
-
   // --- Satellite S ---
-  const satGroup = elSVG('g');
-  satGroup.id='sat-group';
-  // Body
-  satGroup.appendChild(elSVG('rect',{x:-20,y:-10,width:40,height:20,rx:4,fill:'#1d4ed8',stroke:'#60a5fa','stroke-width':1.5}));
-  // Solar panels
-  satGroup.appendChild(elSVG('rect',{x:-50,y:-6,width:28,height:12,rx:2,fill:'#1e40af',stroke:'#93c5fd','stroke-width':1}));
-  satGroup.appendChild(elSVG('rect',{x:22, y:-6,width:28,height:12,rx:2,fill:'#1e40af',stroke:'#93c5fd','stroke-width':1}));
-  // Grid lines on panels
-  for (let i = 1; i < 4; i++) {
-    satGroup.appendChild(elSVG('line',{x1:-50+i*7,y1:-6,x2:-50+i*7,y2:6,stroke:'#93c5fd',opacity:'0.4','stroke-width':0.5}));
-    satGroup.appendChild(elSVG('line',{x1:22+i*7,y1:-6,x2:22+i*7,y2:6,stroke:'#93c5fd',opacity:'0.4','stroke-width':0.5}));
+  const satGroup = elSVG('g'); satGroup.id='sat-group';
+  // Central Body
+  satGroup.appendChild(elSVG('rect',{x:-22,y:-12,width:44,height:24,rx:6,fill:'url(#satGrad)',stroke:'#93c5fd','stroke-width':1.5}));
+  satGroup.appendChild(elSVG('circle',{cx:0,cy:0,r:6,fill:'#0f172a',stroke:'#60a5fa','stroke-width':1})); // Lens/core
+  // Solar Panels (Top & Bottom)
+  satGroup.appendChild(elSVG('rect',{x:-16,y:-35,width:32,height:20,rx:2,fill:'url(#panelGrad)',stroke:'#60a5fa','stroke-width':1}));
+  satGroup.appendChild(elSVG('rect',{x:-16,y:15,width:32,height:20,rx:2,fill:'url(#panelGrad)',stroke:'#60a5fa','stroke-width':1}));
+  // Panel grid lines
+  for(let i=1; i<4; i++) {
+    satGroup.appendChild(elSVG('line',{x1:-16+i*8,y1:-35,x2:-16+i*8,y2:-15,stroke:'#0f172a',opacity:'0.5'}));
+    satGroup.appendChild(elSVG('line',{x1:-16+i*8,y1:15,x2:-16+i*8,y2:35,stroke:'#0f172a',opacity:'0.5'}));
   }
   svg.appendChild(satGroup);
 
   // --- Meteor M ---
-  const metGroup = elSVG('g');
-  metGroup.id='met-group';
-  metGroup.appendChild(elSVG('circle',{cx:0,cy:0,r:7,fill:'#b45309',stroke:'#f59e0b','stroke-width':1.5,filter:'url(#glow)'}));
-  metGroup.appendChild(elSVG('circle',{cx:-2,cy:-2,r:2,fill:'#fef3c7',opacity:'0.6'}));
-  svg.appendChild(metGroup);
+  const metContainer = elSVG('g'); metContainer.id='met-container';
+  const metTrail = elSVG('polygon',{id:'met-trail',points:'0,-6 60,0 0,6',fill:'#f59e0b',opacity:'0.4',filter:'url(#trailGlow)'});
+  metContainer.appendChild(metTrail);
+  const metGroup = elSVG('g'); metGroup.id='met-group';
+  metGroup.appendChild(elSVG('circle',{cx:0,cy:0,r:9,fill:'url(#meteorGrad)',stroke:'#fef3c7','stroke-width':1,filter:'url(#glow)'}));
+  // Meteor craters
+  metGroup.appendChild(elSVG('circle',{cx:-3,cy:-3,r:2,fill:'#451a03',opacity:'0.6'}));
+  metGroup.appendChild(elSVG('circle',{cx:2,cy:4,r:1.5,fill:'#451a03',opacity:'0.5'}));
+  metContainer.appendChild(metGroup);
+  svg.appendChild(metContainer);
 
-  // --- Explosion (hidden until impact) ---
-  const explode = elSVG('g');
-  explode.id='explode'; explode.setAttribute('opacity','0');
-  for (let i = 0; i < 8; i++) {
-    const ang = (i/8)*2*Math.PI;
-    const len = 18 + (i%3)*10;
-    explode.appendChild(elSVG('line',{x1:0,y1:0,
-      x2: Math.cos(ang)*len, y2: Math.sin(ang)*len,
-      stroke:'#fbbf24','stroke-width':2,opacity:'0.9',filter:'url(#explodeGlow)'}));
+  // --- Explosion Shockwaves & Particles ---
+  const explode = elSVG('g'); explode.id='explode'; explode.setAttribute('opacity','0');
+  explode.appendChild(elSVG('circle',{id:'shockwave1',cx:0,cy:0,r:0,fill:'none',stroke:'#fde047','stroke-width':4,opacity:'0.8'}));
+  explode.appendChild(elSVG('circle',{id:'shockwave2',cx:0,cy:0,r:0,fill:'none',stroke:'#f97316','stroke-width':8,opacity:'0.5',filter:'url(#explodeGlow)'}));
+  explode.appendChild(elSVG('circle',{id:'flash',cx:0,cy:0,r:20,fill:'#ffffff',filter:'url(#explodeGlow)'}));
+  // Debris
+  const debris = elSVG('g'); debris.id = 'debris';
+  for(let i=0; i<12; i++) {
+    const ang = Math.random()*Math.PI*2;
+    debris.appendChild(elSVG('circle',{cx:0,cy:0,r:Math.random()*2+1,fill: i%2===0?'#f59e0b':'#94a3b8',
+      'data-ang':ang, 'data-spd':Math.random()*60+40}));
   }
-  explode.appendChild(elSVG('circle',{cx:0,cy:0,r:12,fill:'#fbbf24',opacity:'0.7',filter:'url(#explodeGlow)'}));
+  explode.appendChild(debris);
   svg.appendChild(explode);
 
-  // --- Velocity arrows (pre-impact shown, post-impact shown after t=1) ---
-  // vS arrow
-  const vSarrow = elSVG('line',{x1:0,y1:0,x2:0,y2:0,stroke:'#3b82f6','stroke-width':2,'marker-end':'url(#arrowS)'});
-  vSarrow.id='vs-arrow'; svg.appendChild(vSarrow);
-  const vSLbl = elSVG('text',{x:0,y:0,fill:'#60a5fa','font-size':'10px','font-weight':'700','font-family':"'JetBrains Mono',monospace"});
-  vSLbl.id='vs-lbl'; svg.appendChild(vSLbl);
+  // --- Velocity Vectors & Labels ---
+  const vSarrow = elSVG('line',{id:'vs-arrow',x1:0,y1:0,x2:0,y2:0,stroke:'#60a5fa','stroke-width':2.5,'marker-end':'url(#arrowS)'});
+  svg.appendChild(vSarrow);
+  const vSLbl = elSVG('text',{id:'vs-lbl',x:0,y:0,fill:'#93c5fd','font-size':'11px','font-weight':'700','font-family':"'JetBrains Mono',monospace"});
+  svg.appendChild(vSLbl);
 
-  // vM arrow
-  const vMarrow = elSVG('line',{x1:0,y1:0,x2:0,y2:0,stroke:'#f59e0b','stroke-width':2,'marker-end':'url(#arrowM)'});
-  vMarrow.id='vm-arrow'; svg.appendChild(vMarrow);
-  const vMLbl = elSVG('text',{x:0,y:0,fill:'#fbbf24','font-size':'10px','font-weight':'700','font-family':"'JetBrains Mono',monospace"});
-  vMLbl.id='vm-lbl'; svg.appendChild(vMLbl);
+  const vMarrow = elSVG('line',{id:'vm-arrow',x1:0,y1:0,x2:0,y2:0,stroke:'#fbbf24','stroke-width':2.5,'marker-end':'url(#arrowM)'});
+  svg.appendChild(vMarrow);
+  const vMLbl = elSVG('text',{id:'vm-lbl',x:0,y:0,fill:'#fde047','font-size':'11px','font-weight':'700','font-family':"'JetBrains Mono',monospace"});
+  svg.appendChild(vMLbl);
 
-  // V post-impact arrow
-  const Varrow = elSVG('line',{x1:0,y1:0,x2:0,y2:0,stroke:'#34d399','stroke-width':2.5,'marker-end':'url(#arrowV)','opacity':'0'});
-  Varrow.id='V-arrow'; svg.appendChild(Varrow);
-  const VLbl = elSVG('text',{x:0,y:0,fill:'#34d399','font-size':'10px','font-weight':'700','font-family':"'JetBrains Mono',monospace",'opacity':'0'});
-  VLbl.id='V-lbl'; svg.appendChild(VLbl);
+  const Varrow = elSVG('line',{id:'V-arrow',x1:0,y1:0,x2:0,y2:0,stroke:'#34d399','stroke-width':3,'marker-end':'url(#arrowV)','opacity':'0'});
+  svg.appendChild(Varrow);
+  const VLbl = elSVG('text',{id:'V-lbl',x:0,y:0,fill:'#6ee7b7','font-size':'12px','font-weight':'700','font-family':"'JetBrains Mono',monospace",'opacity':'0'});
+  svg.appendChild(VLbl);
 
-  // Labels S, M
-  const sLbl = elSVG('text',{x:0,y:0,fill:'#93c5fd','font-size':'12px','font-weight':'700','font-family':"'Inter',sans-serif"},'S');
-  sLbl.id='s-lbl'; svg.appendChild(sLbl);
-  const mLbl = elSVG('text',{x:0,y:0,fill:'#fbbf24','font-size':'11px','font-weight':'700','font-family':"'Inter',sans-serif"},'M');
-  mLbl.id='m-lbl'; svg.appendChild(mLbl);
-
-  // φ angle label in the scene
-  const phiLabel = elSVG('text',{x: CX+55, y: CY+28, fill:'#fbbf24','font-size':'10px','font-weight':'600',
-    'font-family':"'Inter',sans-serif",'opacity':'0.7'}, `φ=${phi}°`);
-  phiLabel.id='phi-lbl'; svg.appendChild(phiLabel);
+  // Labels
+  svg.appendChild(elSVG('text',{id:'s-lbl',x:0,y:0,fill:'#bfdbfe','font-size':'13px','font-weight':'800','font-family':"'Inter',sans-serif"},'S'));
+  svg.appendChild(elSVG('text',{id:'m-lbl',x:0,y:0,fill:'#fef3c7','font-size':'11px','font-weight':'800','font-family':"'Inter',sans-serif"},'M'));
+  svg.appendChild(elSVG('text',{id:'phi-lbl',x:CX+65,y:CY+28,fill:'#fbbf24','font-size':'11px','font-weight':'700','font-family':"'Inter',sans-serif",'opacity':'0.8'}));
 }
 
-// positions in animation
-function getPositions(t) {
-  // t: 0→1 = pre-impact approach, 1→2 = post-impact drift
+// Custom Easing for dramatic impact
+// t goes from 0 to 1
+function getLogic(t) {
   const r = solve();
-  const phiR = r.phiR;
-
-  const PRE = 0.55;  // fraction of animation for approach
-  if (t <= PRE) {
-    const frac = t / PRE;
-    // Satellite moves from left → impact point
-    const sX = CX - 160 + frac * 160;
-    const sY = CY;
-    // Meteor moves from its start position → impact point
-    // Meteor comes from lower-right (45° below +x axis, so direction = upper-left)
-    const mStartX = CX + 130;
-    const mStartY = CY + 110;
-    const mX = mStartX + frac*(CX - mStartX);
-    const mY = mStartY + frac*(CY - mStartY);
-    return { phase:'pre', frac, sX, sY, mX, mY };
+  const T_IMPACT = 0.45; 
+  // We use easing to slow down right before impact, bang, then drift
+  let phase, frac, sX, sY, mX, mY, cX, cY, shock;
+  
+  if (t <= T_IMPACT) {
+    phase = 'pre';
+    // easeInQuad for approaching
+    frac = Math.pow(t / T_IMPACT, 1.2);
+    sX = CX - 220 + frac * 220;
+    sY = CY;
+    // Meteor starting point
+    const mStartX = CX + 160;
+    const mStartY = CY + 140;
+    mX = mStartX + frac * (CX - mStartX);
+    mY = mStartY + frac * (CY - mStartY);
+    shock = 0;
   } else {
-    const frac = (t - PRE) / (1 - PRE);
-    // Combined object drifts along V direction
+    phase = 'post';
+    frac = (t - T_IMPACT) / (1 - T_IMPACT);
+    // easeOut cubic for explosion
+    shock = 1 - Math.pow(1 - frac, 4);
+    
+    // Drift
     const Vmag = r.V;
-    const betaR = r.beta * Math.PI / 180;
     const dirX = r.Vx / Vmag;
-    const dirY = -r.Vy / Vmag; // SVG y flipped
-    const drift = frac * 100;
-    const cX = CX + dirX * drift;
-    const cY = CY + dirY * drift;
-    return { phase:'post', frac, cX, cY, r };
+    const dirY = -r.Vy / Vmag;
+    const drift = frac * 140; 
+    cX = CX + dirX * drift;
+    cY = CY + dirY * drift;
+    
+    // Parallax background drift
+    document.getElementById('stars-bg').setAttribute('transform', `translate(${-dirX*drift*0.2}, ${-dirY*drift*0.2})`);
+    document.getElementById('stars-fg').setAttribute('transform', `translate(${-dirX*drift*0.5}, ${-dirY*drift*0.5})`);
   }
+  return { phase, frac, sX, sY, mX, mY, cX, cY, shock, r };
 }
 
 function updateSim(t) {
-  const r = solve();
-  const phiR = r.phiR;
-  const pos = getPositions(Math.min(t, 1));
-  const SCALE_S = 60;  // px per km/s for satellite arrow
-  const SCALE_M = 30;
+  const state = getLogic(Math.min(t, 1));
+  const r = state.r;
 
-  if (pos.phase === 'pre') {
-    const { sX, sY, mX, mY } = pos;
-
-    // Satellite
+  if (state.phase === 'pre') {
+    const { sX, sY, mX, mY, frac } = state;
+    
+    // Reset BGs
+    document.getElementById('stars-bg').setAttribute('transform', `translate(0,0)`);
+    document.getElementById('stars-fg').setAttribute('transform', `translate(0,0)`);
+    
     document.getElementById('sat-group').setAttribute('transform', `translate(${sX},${sY})`);
-    document.getElementById('s-lbl').setAttribute('x', sX - 6);
-    document.getElementById('s-lbl').setAttribute('y', sY - 14);
+    document.getElementById('s-lbl').setAttribute('x', sX - 25);
+    document.getElementById('s-lbl').setAttribute('y', sY - 45);
+    document.getElementById('s-lbl').setAttribute('opacity', 1);
 
-    // vS arrow
-    const vsLen = vS * 1.8;
-    const vsArrow = document.getElementById('vs-arrow');
-    vsArrow.setAttribute('x1', sX + 22);
-    vsArrow.setAttribute('y1', sY);
-    vsArrow.setAttribute('x2', sX + 22 + vsLen);
-    vsArrow.setAttribute('y2', sY);
-    vsArrow.setAttribute('opacity', pos.frac < 0.85 ? '1' : String(1-(pos.frac-0.85)/0.15));
-    const vsLbl = document.getElementById('vs-lbl');
-    vsLbl.setAttribute('x', sX + 22 + vsLen/2);
-    vsLbl.setAttribute('y', sY - 7);
-    vsLbl.textContent = `v_S=${vS} km/s`;
-    vsLbl.setAttribute('opacity', pos.frac < 0.85 ? '1' : String(1-(pos.frac-0.85)/0.15));
+    document.getElementById('met-container').setAttribute('transform', `translate(${mX},${mY}) rotate(${r.phiR*180/Math.PI})`);
+    document.getElementById('m-lbl').setAttribute('x', mX + 15);
+    document.getElementById('m-lbl').setAttribute('y', mY + 15);
+    document.getElementById('m-lbl').setAttribute('opacity', 1);
 
-    // Meteor
-    document.getElementById('met-group').setAttribute('transform', `translate(${mX},${mY})`);
-    document.getElementById('m-lbl').setAttribute('x', mX + 9);
-    document.getElementById('m-lbl').setAttribute('y', mY + 4);
+    // Fade out vectors right before impact
+    const op = frac < 0.85 ? 1 : 1 - (frac-0.85)/0.15;
+    
+    const vsLen = Math.max(40, vS * 8);
+    const vsArr = document.getElementById('vs-arrow');
+    vsArr.setAttribute('x1', sX + 30); vsArr.setAttribute('y1', sY);
+    vsArr.setAttribute('x2', sX + 30 + vsLen); vsArr.setAttribute('y2', sY);
+    vsArr.setAttribute('opacity', op);
+    document.getElementById('vs-lbl').setAttribute('x', sX + 30 + vsLen/2 - 20);
+    document.getElementById('vs-lbl').setAttribute('y', sY - 10);
+    document.getElementById('vs-lbl').textContent = `v_S=${vS} km/s`;
+    document.getElementById('vs-lbl').setAttribute('opacity', op);
 
-    // vM arrow (points upper-left, from M's current position)
-    const vmArrow = document.getElementById('vm-arrow');
-    const vmLen = vM * 1.5;
-    const vmDx = -Math.cos(phiR) * vmLen;
-    const vmDy =  Math.sin(phiR) * vmLen;
-    vmArrow.setAttribute('x1', mX + vmDx*0.1);
-    vmArrow.setAttribute('y1', mY - vmDy*0.1);
-    vmArrow.setAttribute('x2', mX + vmDx*0.95);
-    vmArrow.setAttribute('y2', mY - vmDy*0.95);
-    vmArrow.setAttribute('opacity', pos.frac < 0.85 ? '1' : String(1-(pos.frac-0.85)/0.15));
-    const vmLbl = document.getElementById('vm-lbl');
-    vmLbl.setAttribute('x', mX + vmDx*0.5 - 6);
-    vmLbl.setAttribute('y', mY - vmDy*0.5 - 6);
-    vmLbl.textContent = `v_M=${vM} km/s`;
-    vmLbl.setAttribute('opacity', pos.frac < 0.85 ? '1' : String(1-(pos.frac-0.85)/0.15));
+    // Meteor vector points towards satellite
+    const vmLen = Math.max(50, vM * 5);
+    const vmArr = document.getElementById('vm-arrow');
+    const vmDx = -Math.cos(r.phiR)*vmLen;
+    const vmDy = Math.sin(r.phiR)*vmLen;
+    vmArr.setAttribute('x1', mX + vmDx*0.2); vmArr.setAttribute('y1', mY - vmDy*0.2);
+    vmArr.setAttribute('x2', mX + vmDx); vmArr.setAttribute('y2', mY - vmDy);
+    vmArr.setAttribute('opacity', op);
+    
+    document.getElementById('vm-lbl').setAttribute('x', mX + vmDx*0.5 + 5);
+    document.getElementById('vm-lbl').setAttribute('y', mY - vmDy*0.5 - 15);
+    document.getElementById('vm-lbl').textContent = `v_M=${vM} km/s`;
+    document.getElementById('vm-lbl').setAttribute('opacity', op);
 
-    // Meteor trail
-    document.getElementById('meteor-trail').setAttribute('x1', CX+130);
-    document.getElementById('meteor-trail').setAttribute('y1', CY+110);
-    document.getElementById('meteor-trail').setAttribute('x2', mX);
-    document.getElementById('meteor-trail').setAttribute('y2', mY);
-
-    // Explosion hidden
     document.getElementById('explode').setAttribute('opacity','0');
     document.getElementById('V-arrow').setAttribute('opacity','0');
     document.getElementById('V-lbl').setAttribute('opacity','0');
-
-    // β arc hidden
-    document.getElementById('beta-arc').setAttribute('d','M0,0');
+    document.getElementById('beta-arc').setAttribute('opacity','0');
     document.getElementById('beta-lbl').setAttribute('opacity','0');
-
-    // phi label
+    
     document.getElementById('phi-lbl').textContent = `φ=${phi}°`;
+    document.getElementById('phi-lbl').setAttribute('opacity', op);
 
   } else {
-    // Post-impact
-    const { frac, cX, cY } = pos;
-    const betaR = r.beta * Math.PI / 180;
-    const Vmag = r.V;
-    const dirXn = r.Vx / Vmag;
-    const dirYn = -r.Vy / Vmag;
+    // POST IMPACT
+    const { frac, cX, cY, shock } = state;
+    const dirXn = r.Vx / r.V;
+    const dirYn = -r.Vy / r.V;
 
-    // Satellite moves to impact point then drifts
+    // Sat & Meteor merged
     document.getElementById('sat-group').setAttribute('transform', `translate(${cX},${cY})`);
-    document.getElementById('s-lbl').setAttribute('x', cX - 6);
-    document.getElementById('s-lbl').setAttribute('y', cY - 14);
+    document.getElementById('s-lbl').setAttribute('x', cX - 25);
+    document.getElementById('s-lbl').setAttribute('y', cY - 45);
+    
+    // Meteor is embedded
+    document.getElementById('met-container').setAttribute('transform', `translate(${cX+8},${cY+8}) rotate(${r.phiR*180/Math.PI}) scale(0.6)`);
+    document.getElementById('m-lbl').setAttribute('opacity', '0'); // M visually merges
 
-    // Meteor at satellite (embedded)
-    document.getElementById('met-group').setAttribute('transform', `translate(${cX+8},${cY+8})`);
-    document.getElementById('m-lbl').setAttribute('x', cX + 15);
-    document.getElementById('m-lbl').setAttribute('y', cY + 14);
+    // Hide pre arrows
+    document.getElementById('vs-arrow').setAttribute('opacity','0'); document.getElementById('vs-lbl').setAttribute('opacity','0');
+    document.getElementById('vm-arrow').setAttribute('opacity','0'); document.getElementById('vm-lbl').setAttribute('opacity','0');
+    document.getElementById('phi-lbl').setAttribute('opacity','0');
 
-    // Pre-impact arrows fade out
-    document.getElementById('vs-arrow').setAttribute('opacity','0');
-    document.getElementById('vs-lbl').setAttribute('opacity','0');
-    document.getElementById('vm-arrow').setAttribute('opacity','0');
-    document.getElementById('vm-lbl').setAttribute('opacity','0');
+    // Explosion Effect
+    const explOp = frac < 0.1 ? frac/0.1 : Math.max(0, 1 - (frac-0.1)/0.4);
+    const expGroup = document.getElementById('explode');
+    expGroup.setAttribute('opacity', explOp.toFixed(2));
+    expGroup.setAttribute('transform', `translate(${CX},${CY})`); // explosion stays at impact origin
+    
+    // Shockwaves grow
+    document.getElementById('shockwave1').setAttribute('r', shock * 80);
+    document.getElementById('shockwave2').setAttribute('r', shock * 40);
+    document.getElementById('flash').setAttribute('opacity', Math.max(0, 1-shock*3));
+    
+    // Debris burst
+    Array.from(document.getElementById('debris').children).forEach(p => {
+      const ang = parseFloat(p.getAttribute('data-ang'));
+      const spd = parseFloat(p.getAttribute('data-spd'));
+      const dist = shock * spd;
+      p.setAttribute('cx', Math.cos(ang)*dist);
+      p.setAttribute('cy', Math.sin(ang)*dist);
+    });
 
-    // Explosion flash
-    const explOp = frac < 0.15 ? frac/0.15 : Math.max(0, 1 - (frac-0.15)/0.25);
-    document.getElementById('explode').setAttribute('opacity', explOp.toFixed(2));
-    document.getElementById('explode').setAttribute('transform', `translate(${cX},${cY})`);
+    // Post vector V
+    const Vop = Math.min(1, frac/0.2);
+    const Vlen = Math.max(60, r.V * 9);
+    const Varr = document.getElementById('V-arrow');
+    Varr.setAttribute('x1', cX); Varr.setAttribute('y1', cY);
+    Varr.setAttribute('x2', cX + dirXn*Vlen); Varr.setAttribute('y2', cY + dirYn*Vlen);
+    Varr.setAttribute('opacity', Vop);
+    
+    const Vlb = document.getElementById('V-lbl');
+    Vlb.setAttribute('x', cX + dirXn*Vlen + 10);
+    Vlb.setAttribute('y', cY + dirYn*Vlen + 5);
+    Vlb.textContent = `V=${r.V.toFixed(2)} km/s`;
+    Vlb.setAttribute('opacity', Vop);
 
-    // Post-impact V arrow
-    const Vop = Math.min(1, frac/0.3);
-    const Varrow = document.getElementById('V-arrow');
-    const VLen = 80;
-    Varrow.setAttribute('x1', cX);
-    Varrow.setAttribute('y1', cY);
-    Varrow.setAttribute('x2', cX + dirXn*VLen);
-    Varrow.setAttribute('y2', cY + dirYn*VLen);
-    Varrow.setAttribute('opacity', Vop.toFixed(2));
-    const VLbl = document.getElementById('V-lbl');
-    VLbl.setAttribute('x', cX + dirXn*VLen*0.6 + 8);
-    VLbl.setAttribute('y', cY + dirYn*VLen*0.6 - 6);
-    VLbl.textContent = `V=${r.V.toFixed(3)} km/s`;
-    VLbl.setAttribute('opacity', Vop.toFixed(2));
-
-    // β arc
-    if (Vop > 0.3) {
-      const arcR = 50;
-      const arcPath = `M ${cX + arcR} ${cY} A ${arcR} ${arcR} 0 0 ${r.Vy > 0 ? 1 : 0} ${cX + dirXn*arcR} ${cY + dirYn*arcR}`;
-      document.getElementById('beta-arc').setAttribute('d', arcPath);
-      document.getElementById('beta-arc').setAttribute('opacity', Math.min(1,(Vop-0.3)/0.3).toFixed(2));
-      const midAngR = betaR/2;
-      document.getElementById('beta-lbl').setAttribute('x', cX + (arcR+14)*Math.cos(-midAngR));
-      document.getElementById('beta-lbl').setAttribute('y', cY + (arcR+14)*Math.sin(-midAngR) + 4);
-      document.getElementById('beta-lbl').textContent = `β=${r.beta.toFixed(1)}°`;
-      document.getElementById('beta-lbl').setAttribute('opacity', Math.min(1,(Vop-0.3)/0.3).toFixed(2));
+    // Beta arc
+    if (Vop > 0.5) {
+      const arcR = 60;
+      const arcOp  = Math.min(1, (Vop-0.5)*2);
+      const arcPath = `M ${CX + arcR} ${CY} A ${arcR} ${arcR} 0 0 ${r.Vy > 0 ? 0 : 1} ${CX + dirXn*arcR} ${CY + dirYn*arcR}`;
+      const ba = document.getElementById('beta-arc');
+      ba.setAttribute('d', arcPath);
+      ba.setAttribute('opacity', arcOp);
+      
+      const midAngR = (r.beta * Math.PI/180) / 2;
+      const blb = document.getElementById('beta-lbl');
+      blb.setAttribute('x', CX + (arcR+18)*Math.cos(-midAngR)); // SVG y flipped
+      blb.setAttribute('y', CY + (arcR+18)*Math.sin(-midAngR) + 4);
+      blb.textContent = `β=${r.beta.toFixed(1)}°`;
+      blb.setAttribute('opacity', arcOp);
     }
   }
 
-  // Live data
+  // Live Dashboard Data
   document.getElementById('live-Vx').textContent  = r.Vx.toFixed(4) + ' km/s';
   document.getElementById('live-Vy').textContent  = r.Vy.toFixed(4) + ' km/s';
   document.getElementById('live-V').textContent   = r.V.toFixed(4)  + ' km/s';
   document.getElementById('live-beta').textContent = r.beta.toFixed(2) + '°';
 }
 
-// ─── Animation Control ───
-let lastTime = null;
 function animFrame(ts) {
   if (!lastTime) lastTime = ts;
   const dt = (ts - lastTime) / 1000;
   lastTime = ts;
   animT += dt / ANIM_DUR;
   if (animT >= 1) {
-    animT = 1;
-    isPlaying = false;
+    animT = 1; isPlaying = false;
     document.getElementById('btn-play').textContent = '▶ Play';
-    document.querySelectorAll('.step-card').forEach((c,i) =>
-      setTimeout(() => c.classList.add('visible'), i * 200));
+    document.querySelectorAll('.step-card').forEach((c,i) => setTimeout(() => c.classList.add('visible'), i * 150));
   }
   document.getElementById('time-slider').value = animT;
+  document.getElementById('slider-val').textContent = (animT * 100).toFixed(0) + '%';
   updateSim(animT);
   if (isPlaying) animId = requestAnimationFrame(animFrame);
 }
@@ -387,25 +377,21 @@ function resetAnim() {
   isPlaying = false; animT = 0; lastTime = null;
   document.getElementById('btn-play').textContent = '▶ Play';
   document.getElementById('time-slider').value = 0;
+  document.getElementById('slider-val').textContent = '0%';
   document.querySelectorAll('.step-card').forEach(c => c.classList.remove('visible'));
   buildScene();
   updateSim(0);
 }
 
-// ─── Modal ───
 function openModal() {
   document.getElementById('theory-modal').classList.add('active');
-  if (window.MathJax && MathJax.typeset) MathJax.typeset();
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
 }
-function closeModal() {
-  document.getElementById('theory-modal').classList.remove('active');
-}
+function closeModal() { document.getElementById('theory-modal').classList.remove('active'); }
 
-// ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
   buildScene();
   updateResults();
-
   document.getElementById('btn-play').addEventListener('click', playAnim);
   document.getElementById('btn-reset').addEventListener('click', resetAnim);
   document.getElementById('btn-theory').addEventListener('click', openModal);
@@ -414,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === e.currentTarget) closeModal();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
+  
   document.getElementById('btn-apply').addEventListener('click', () => {
     mS  = parseFloat(document.getElementById('inp-mS').value)  || 400;
     mM  = parseFloat(document.getElementById('inp-mM').value)  || 1;
@@ -429,7 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
   slider.addEventListener('input', e => {
     if (isPlaying) { cancelAnimationFrame(animId); isPlaying = false; document.getElementById('btn-play').textContent = '▶ Play'; }
     animT = parseFloat(e.target.value);
-    updateSim(animT);
     document.getElementById('slider-val').textContent = (animT * 100).toFixed(0) + '%';
+    if(animT===0) buildScene(); // reset state for fresh drawing
+    updateSim(animT);
   });
 });
