@@ -29,7 +29,9 @@ const UI = {
     pinBbc: document.getElementById('pin-b-bc'),
     pinC: document.getElementById('pin-c'),
     labelB: document.getElementById('label-b'),
-    labelC: document.getElementById('label-c')
+    labelC: document.getElementById('label-c'),
+    vecVb: document.getElementById('vec-vb'),
+    vecVc: document.getElementById('vec-vc')
 };
 
 // Generate teeth for gear and rack
@@ -140,6 +142,23 @@ function updateVisuals(t) {
     UI.labelB.setAttribute('y', syB - 15);
     UI.labelC.setAttribute('x', sxC - 15);
     UI.labelC.setAttribute('y', syC - 15);
+    
+    // Draw Velocity Vectors (Scale: 0.5)
+    let vScale = 0.5;
+    let vBx = -res.yB * res.w_AB;
+    let vBy = res.xB * res.w_AB;
+    let vCx = -res.yC * res.w_CD;
+    let vCy = (res.xC - state.xD) * res.w_CD;
+    
+    UI.vecVb.setAttribute('x1', sxB);
+    UI.vecVb.setAttribute('y1', syB);
+    UI.vecVb.setAttribute('x2', sxB + vBx * vScale);
+    UI.vecVb.setAttribute('y2', syB - vBy * vScale); // SVG y is inverted
+    
+    UI.vecVc.setAttribute('x1', sxC);
+    UI.vecVc.setAttribute('y1', syC);
+    UI.vecVc.setAttribute('x2', sxC + vCx * vScale);
+    UI.vecVc.setAttribute('y2', syC - vCy * vScale);
     
     let rot = -(res.thetaCD - state.thetaCD_0) * 180 / Math.PI;
     UI.gearGroup.setAttribute('transform', `rotate(${rot} 220 0)`);
