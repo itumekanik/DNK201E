@@ -24,6 +24,13 @@
         </div>
       </div>
       <div class="controls">
+        <div class="units-badge" style="display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px;">
+          <label style="font-size: 0.7rem; font-weight: 700; color: #475569;">Units:</label>
+          <select id="units-select" style="border: none; outline: none; background: transparent; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: #2563eb; cursor: pointer;">
+            <option value="US" selected>US (in, in/s)</option>
+            <option value="SI">SI (mm, mm/s)</option>
+          </select>
+        </div>
         <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
         <button class="btn btn-primary" id="btn-play">▶ Play / Pause</button>
         <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
@@ -121,11 +128,11 @@
           </div>
           <div class="data-item" style="background: #f8fafc;">
             <div class="label">L_AB, L_BC</div>
-            <div class="value" style="font-size: 0.65rem; color: #475569;">13.42, 16.12 in</div>
+            <div class="value" id="val-labc" style="font-size: 0.65rem; color: #475569;">13.42, 16.12 in</div>
           </div>
           <div class="data-item" style="background: #f8fafc;">
             <div class="label">L_CD, R_gear</div>
-            <div class="value" style="font-size: 0.65rem; color: #475569;">10.00, 6.00 in</div>
+            <div class="value" id="val-lcd" style="font-size: 0.65rem; color: #475569;">10.00, 6.00 in</div>
           </div>
         </div>
       </div>
@@ -175,8 +182,8 @@
       <div class="modal-body">
         <div class="modal-section">
           <h3>🔹 Problem Statement</h3>
-          <p>Bar AB rotates with a clockwise angular velocity of \( \omega_{AB} = 10 \text{ rad/s} \). Determine the vertical velocity \( v_R \) of the rack of the rack-and-pinion gear. System given parameters at the initial snapshot:</p>
-          <ul>
+          <p id="mod-p1">Bar AB rotates with a clockwise angular velocity of \( \omega_{AB} = 10 \text{ rad/s} \). Determine the vertical velocity \( v_R \) of the rack of the rack-and-pinion gear. System given parameters at the initial snapshot:</p>
+          <ul id="mod-ul">
             <li>\( A = (0, 0) \), \( B = (6, 12) \), \( C = (22, 10) \), \( D = (22, 0) \) in inches.</li>
             <li>Pinion touches the rack at radius \( r_{gear} = 6 \text{ in} \).</li>
           </ul>
@@ -195,26 +202,26 @@
         </div>
         <div class="modal-section">
           <h3>🔹 Solution</h3>
-          <p>Given \( \vec{\omega}_{AB} = -10 \hat{k} \) rad/s. Then:
+          <p id="mod-sol1">Given \( \vec{\omega}_{AB} = -10 \hat{k} \) rad/s. Then:
             $$ \vec{v}_B = (-10 \hat{k}) \times (6\hat{i} + 12\hat{j}) = 120\hat{i} - 60\hat{j} \text{ in/s} $$
           </p>
-          <p>For link BC:
+          <p id="mod-sol2">For link BC:
             $$ \vec{r}_{C/B} = (22 - 6)\hat{i} + (10 - 12)\hat{j} = 16\hat{i} - 2\hat{j} $$
             $$ \vec{v}_C = (120\hat{i} - 60\hat{j}) + (\omega_{BC}\hat{k} \times (16\hat{i} - 2\hat{j})) $$
             $$ \vec{v}_C = (120 + 2\omega_{BC})\hat{i} + (-60 + 16\omega_{BC})\hat{j} $$
           </p>
-          <p>For link CD:
+          <p id="mod-sol3">For link CD:
             $$ \vec{r}_{C/D} = (22 - 22)\hat{i} + (10 - 0)\hat{j} = 10\hat{j} $$
             $$ \vec{v}_C = \omega_{CD}\hat{k} \times 10\hat{j} = -10\omega_{CD}\hat{i} $$
           </p>
         </div>
         <div class="modal-section">
           <h3>🔹 Conclusion</h3>
-          <p>Equating components of \( \vec{v}_C \):
+          <p id="mod-con1">Equating components of \( \vec{v}_C \):
             $$ y\text{-dir}: -60 + 16\omega_{BC} = 0 \implies \omega_{BC} = 3.75 \text{ rad/s} $$
             $$ x\text{-dir}: 120 + 2(3.75) = -10\omega_{CD} \implies \omega_{CD} = -12.75 \text{ rad/s} $$
           </p>
-          <p>The rack is vertically driven by the right edge of the gear.
+          <p id="mod-con2">The rack is vertically driven by the right edge of the gear.
             $$ \vec{v}_{Rack} = \vec{\omega}_{CD} \times \vec{r}_{edge} = (-12.75 \hat{k}) \times (6 \hat{i}) = -76.5 \hat{j} \text{ in/s} $$
           </p>
           <div class="modal-result" id="modal-result-ans">$$ v_{Rack} = 76.5 \text{ in/s } (6.375 \text{ ft/s}) \ (\downarrow) $$</div>

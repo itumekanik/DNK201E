@@ -143,7 +143,7 @@ function updateVisuals(t) {
     UI.labelC.setAttribute('x', sxC - 15);
     UI.labelC.setAttribute('y', syC - 15);
     
-    // Draw Velocity Vectors (Scale: 0.5)
+    // Draw Velocity Vectors (Scale: 0.5 for visual limits)
     let vScale = 0.5;
     let vBx = -res.yB * res.w_AB;
     let vBy = res.xB * res.w_AB;
@@ -166,19 +166,28 @@ function updateVisuals(t) {
     let rackDisp = -60 * (res.thetaCD - state.thetaCD_0);
     UI.rackGroup.setAttribute('transform', `translate(0, ${rackDisp})`);
     
+    // UNIT Display Conversion
+    let isSI = document.getElementById('units-select')?.value === 'SI';
+    let mult = isSI ? 25.4 : 1;
+    let lenU = isSI ? 'mm' : 'in';
+    let velU = isSI ? 'mm/s' : 'in/s';
+
     UI.valWab.textContent = res.w_AB.toFixed(2) + " rad/s";
     UI.valWbc.textContent = res.w_BC.toFixed(2) + " rad/s";
     UI.valWcd.textContent = res.w_CD.toFixed(2) + " rad/s";
-    UI.valVr.textContent = res.vRack.toFixed(2) + " in/s (" + (res.vRack / 12).toFixed(3) + " ft/s)";
     
-    UI.valPosB.textContent = res.xB.toFixed(2) + ", " + res.yB.toFixed(2) + " in";
-    UI.valPosC.textContent = res.xC.toFixed(2) + ", " + res.yC.toFixed(2) + " in";
+    let vr_val = res.vRack * mult;
+    let vr_alt = isSI ? (res.vRack * 0.0254).toFixed(3) + " m/s" : (res.vRack / 12).toFixed(3) + " ft/s";
+    UI.valVr.textContent = vr_val.toFixed(2) + " " + velU + " (" + vr_alt + ")";
+    
+    UI.valPosB.textContent = (res.xB * mult).toFixed(2) + ", " + (res.yB * mult).toFixed(2) + " " + lenU;
+    UI.valPosC.textContent = (res.xC * mult).toFixed(2) + ", " + (res.yC * mult).toFixed(2) + " " + lenU;
     
     let svgDot = document.getElementById('graph-dot');
     if(svgDot && window.graphSpan) {
         let maxT = window.graphMaxT || 0.25;
         let x = 60 + (t / maxT) * 400;
-        let y = 220 - ((res.vRack - window.graphMinV) / window.graphSpan) * 190;
+        let y = 220 - ((vr_val - window.graphMinV) / window.graphSpan) * 190;
         svgDot.setAttribute('cx', x);
         svgDot.setAttribute('cy', y);
     }
@@ -193,8 +202,16 @@ UI.btnApply.addEventListener('click', () => {
     time = 0;
     if(animation) animation.pause();
     isPlaying = false;
+    updateSolutionCards();
     initGraph();
     updateVisuals(0);
+});
+
+// Unit change trigger
+document.getElementById('units-select')?.addEventListener('change', () => {
+    updateSolutionCards();
+    initGraph();
+    updateVisuals(time);
 });
 
 UI.btnReset.addEventListener('click', () => {
@@ -240,17 +257,104 @@ UI.btnPlay.addEventListener('click', () => {
 UI.btnTheory.addEventListener('click', () => UI.modal.classList.add('active'));
 UI.btnClose.addEventListener('click', () => UI.modal.classList.remove('active'));
 
+function updateSolutionCards() {
+    let u = document.getElementById('units-select')?.value || 'US';
+    let isSI = (u === 'SI');
+    let m = isSI ? 25.4 : 1;
+    let lenU = isSI ? 'mm' : 'in';
+    let velU = isSI ? 'mm/s' : 'in/s';
+    
+    let elLabc = document.getElementById('val-labc');
+    if (elLabc) elLabc.textContent = (13.4164*m).toFixed(2) + ', ' + (16.1245*m).toFixed(2) + ' ' + lenU;
+    let elLcd = document.getElementById('val-lcd');
+    if (elLcd) elLcd.textContent = (10*m).toFixed(2) + ', ' + (6*m).toFixed(2) + ' ' + lenU;
+    
+    const stepCards = document.querySelectorAll('.step-card');
+    if (stepCards.length < 3) return;
+    
+    let w = inputW;
+    let xb = 6*m, yb = 12*m;
+    let rcbx = 16*m, rcby = -2*m;
+    let rcdy = 10*m;
+    let rg = 6*m;
+    
+    let vbx = -w * yb;
+    let vby = w * xb;
+    
+    let wbc = -vby / 16 / m; 
+    let wcd = -(vbx - 2*m * wbc) / 10 / m;
+    let vr = wcd * rg;
+    
+    let secText = isSI ? `(${(Math.abs(vr) / 1000).toFixed(4)} \\text{ m/s})` : `(${(Math.abs(vr) / 12).toFixed(3)} \\text{ ft/s})`;
+    
+    // Step Cards Update (Fix for DOM selector crash)
+    let f0 = stepCards[0].querySelectorAll('.formula');
+    f0[0].innerHTML = `\\( \\vec{r}_{B/A} = (${xb.toFixed(1)}\\hat{i} + ${yb.toFixed(1)}\\hat{j}) \\text{ ${lenU}} \\)`;
+    f0[1].innerHTML = `\\( \\vec{v}_B = \\vec{\\omega}_{AB} \\times \\vec{r}_{B/A} = (${w}\\hat{k}) \\times (${xb.toFixed(1)}\\hat{i} + ${yb.toFixed(1)}\\hat{j}) \\)`;
+    stepCards[0].querySelectorAll('.result')[0].innerHTML = `\\( \\vec{v}_B = ${vbx.toFixed(1)}\\hat{i} + ${vby.toFixed(1)}\\hat{j} \\text{ ${velU}} \\)`;
+    
+    let r1 = stepCards[1].querySelectorAll('.result');
+    r1[0].innerHTML = `\\( (v_C)_x = ${vbx.toFixed(1)}${rcby<0?'+':'-'} ${Math.abs(rcby).toFixed(1)}\\omega_{BC} = -${rcdy.toFixed(1)}\\omega_{CD} \\)`;
+    r1[1].innerHTML = `\\( (v_C)_y = ${vby.toFixed(1)}${rcbx>0?'+':'-'} ${Math.abs(rcbx).toFixed(1)}\\omega_{BC} = 0 \\)`;
+    
+    let f2 = stepCards[2].querySelectorAll('.formula');
+    f2[0].innerHTML = `\\( \\omega_{BC} = \\frac{${-vby.toFixed(1)}}{${Math.abs(rcbx).toFixed(1)}} = ${wbc.toFixed(2)} \\text{ rad/s} \\)`;
+    f2[1].innerHTML = `\\( \\omega_{CD} = \\frac{-(${vbx.toFixed(1)} ${rcby<0?'-':'+'} ${Math.abs(rcby).toFixed(1)}(${wbc.toFixed(2)}))}{${rcdy.toFixed(1)}} = ${wcd.toFixed(2)} \\text{ rad/s} \\)`;
+    f2[2].innerHTML = `\\( v_R = \\omega_{CD} \\times r_{gear} = ${wcd.toFixed(2)} \\times ${rg.toFixed(1)} \\)`;
+    stepCards[2].querySelectorAll('.result')[0].innerHTML = `\\( v_{Rack} = ${Math.abs(vr).toFixed(2)} \\text{ ${velU} } ${secText} \\quad [${vr < 0 ? '\\text{Downward}' : '\\text{Upward}'}] \\)`;
+
+    // Theory Modal Update
+    let dirW = w < 0 ? '\\text{clockwise}' : '\\text{counter-clockwise}';
+    document.getElementById('mod-p1').innerHTML = `Bar AB rotates with a ${dirW} angular velocity of \\( \\omega_{AB} = ${Math.abs(w)} \\text{ rad/s} \\). Determine the vertical velocity \\( v_R \\) of the rack of the rack-and-pinion gear. System given parameters at the initial snapshot:`;
+    document.getElementById('mod-ul').innerHTML = `
+      <li>\\( A = (0, 0) \\), \\( B = (${xb.toFixed(1)}, ${yb.toFixed(1)}) \\), \\( C = (${(22*m).toFixed(1)}, ${(10*m).toFixed(1)}) \\), \\( D = (${(22*m).toFixed(1)}, 0) \\) in ${lenU}.</li>
+      <li>Pinion touches the rack at radius \\( r_{gear} = ${rg.toFixed(1)} \\text{ ${lenU}} \\).</li>
+    `;
+    
+    document.getElementById('mod-sol1').innerHTML = `Given \\( \\vec{\\omega}_{AB} = ${w} \\hat{k} \\) rad/s. Then:
+      $$ \\vec{v}_B = (${w} \\hat{k}) \\times (${xb.toFixed(1)}\\hat{i} + ${yb.toFixed(1)}\\hat{j}) = ${vbx.toFixed(1)}\\hat{i} + ${vby.toFixed(1)}\\hat{j} \\text{ ${velU}} $$
+    `;
+    
+    document.getElementById('mod-sol2').innerHTML = `For link BC:
+      $$ \\vec{r}_{C/B} = (${(22*m).toFixed(1)} - ${xb.toFixed(1)})\\hat{i} + (${(10*m).toFixed(1)} - ${yb.toFixed(1)})\\hat{j} = ${rcbx.toFixed(1)}\\hat{i} ${rcby<0?'-':'+'} ${Math.abs(rcby).toFixed(1)}\\hat{j} $$
+      $$ \\vec{v}_C = (${vbx.toFixed(1)}\\hat{i} + ${vby.toFixed(1)}\\hat{j}) + (\\omega_{BC}\\hat{k} \\times (${rcbx.toFixed(1)}\\hat{i} ${rcby<0?'-':'+'} ${Math.abs(rcby).toFixed(1)}\\hat{j})) $$
+      $$ \\vec{v}_C = (${vbx.toFixed(1)} ${rcby<0?'+':'-'} ${Math.abs(rcby).toFixed(1)}\\omega_{BC})\\hat{i} + (${vby.toFixed(1)} ${rcbx>0?'+':'-'} ${Math.abs(rcbx).toFixed(1)}\\omega_{BC})\\hat{j} $$
+    `;
+    
+    document.getElementById('mod-sol3').innerHTML = `For link CD:
+      $$ \\vec{r}_{C/D} = (${(22*m).toFixed(1)} - ${(22*m).toFixed(1)})\\hat{i} + (${(10*m).toFixed(1)} - 0)\\hat{j} = ${rcdy.toFixed(1)}\\hat{j} $$
+      $$ \\vec{v}_C = \\omega_{CD}\\hat{k} \\times ${rcdy.toFixed(1)}\\hat{j} = -${rcdy.toFixed(1)}\\omega_{CD}\\hat{i} $$
+    `;
+    
+    document.getElementById('mod-con1').innerHTML = `Equating components of \\( \\vec{v}_C \\):
+      $$ y\\text{-dir}: ${vby.toFixed(1)} ${rcbx>0?'+':'-'} ${Math.abs(rcbx).toFixed(1)}\\omega_{BC} = 0 \\implies \\omega_{BC} = ${wbc.toFixed(2)} \\text{ rad/s} $$
+      $$ x\\text{-dir}: ${vbx.toFixed(1)} ${rcby<0?'+':'-'} ${Math.abs(rcby).toFixed(1)}(${wbc.toFixed(2)}) = -${rcdy.toFixed(1)}\\omega_{CD} \\implies \\omega_{CD} = ${wcd.toFixed(2)} \\text{ rad/s} $$
+    `;
+    
+    document.getElementById('mod-con2').innerHTML = `The rack is vertically driven by the right edge of the gear.
+      $$ \\vec{v}_{Rack} = \\vec{\\omega}_{CD} \\times \\vec{r}_{edge} = (${wcd.toFixed(2)} \\hat{k}) \\times (${rg.toFixed(1)} \\hat{i}) = ${vr.toFixed(1)} \\hat{j} \\text{ ${velU}} $$
+    `;
+    
+    document.getElementById('modal-result-ans').innerHTML = `$$ v_{Rack} = ${Math.abs(vr).toFixed(2)} \\text{ ${velU} } ${secText} \\ (${vr < 0 ? '\\downarrow' : '\\uparrow'}) $$`;
+    
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+}
+
 function initGraph() {
+    let u = document.getElementById('units-select')?.value || 'US';
+    let isSI = (u === 'SI');
+    let mult = isSI ? 25.4 : 1;
+    let velU = isSI ? 'mm/s' : 'in/s';
+    
     let svg = document.getElementById('v-graph');
     svg.setAttribute('viewBox', '0 0 500 250');
     
     let pts = [];
-    // max time based on slider max
     let maxT = parseFloat(UI.slider.max);
     for(let t=0; t<=maxT; t+=0.005) {
         let res = solveKinematics(t);
         if(res) {
-            pts.push({t: t, v: res.vRack});
+            pts.push({t: t, v: res.vRack * mult});
         }
     }
     if(pts.length === 0) return;
@@ -269,7 +373,7 @@ function initGraph() {
     window.graphMaxT = maxT;
     
     function getX(t) { return 60 + (t / maxT) * 400; }
-    function getY(v) { return 220 - ((v - minV) / span) * 190; } // y mapping from 30 to 220
+    function getY(v) { return 220 - ((v - minV) / span) * 190; }
     
     let html = `
       <line x1="60" y1="30" x2="60" y2="220" stroke="#94a3b8" stroke-width="2"/>
@@ -278,7 +382,7 @@ function initGraph() {
       <text x="50" y="220" fill="#475569" font-size="11" font-family="'Inter', sans-serif" text-anchor="end">${minV.toFixed(1)}</text>
       <text x="460" y="238" fill="#475569" font-size="11" font-family="'Inter', sans-serif" text-anchor="middle">${maxT} s</text>
       <text x="60" y="238" fill="#475569" font-size="11" font-family="'Inter', sans-serif" text-anchor="middle">0 s</text>
-      <text x="25" y="130" fill="#e11d48" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle" transform="rotate(-90 25 130)">v_Rack (in/s)</text>
+      <text x="25" y="130" fill="#e11d48" font-size="12" font-family="'Inter', sans-serif" text-anchor="middle" transform="rotate(-90 25 130)">v_Rack (${velU})</text>
     `;
 
     // Zero line
@@ -296,5 +400,6 @@ function initGraph() {
 }
 
 // Initial render
+updateSolutionCards();
 initGraph();
 updateVisuals(0);
