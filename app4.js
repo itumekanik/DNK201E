@@ -96,6 +96,10 @@ function buildScene() {
   const refLine = elSVG('line',{x1: 0, y1: CY, x2: W, y2: CY, stroke:'rgba(59,130,246,0.15)', 'stroke-width':1.5, 'stroke-dasharray':'10,8'});
   svg.appendChild(refLine);
 
+  // New dashed trajectory line for the post-impact velocity
+  const vTrajLine = elSVG('line',{id:'v-traj-line', x1: CX, y1: CY, x2: CX, y2: CY, stroke:'rgba(52,211,153,0.4)', 'stroke-width':1.5, 'stroke-dasharray':'6,6', opacity:'0'});
+  svg.appendChild(vTrajLine);
+
   // Beta Info Arc
   const betaArc = elSVG('path',{d:'M0,0',fill:'none',stroke:'rgba(52,211,153,0.8)','stroke-width':2, 'stroke-dasharray':'4,4'});
   betaArc.id='beta-arc'; svg.appendChild(betaArc);
@@ -258,6 +262,7 @@ function updateSim(t) {
     document.getElementById('explode').setAttribute('opacity','0');
     document.getElementById('V-arrow').setAttribute('opacity','0');
     document.getElementById('V-lbl').setAttribute('opacity','0');
+    document.getElementById('v-traj-line').setAttribute('opacity','0');
     document.getElementById('beta-arc').setAttribute('opacity','0');
     document.getElementById('beta-lbl').setAttribute('opacity','0');
     
@@ -311,6 +316,12 @@ function updateSim(t) {
     Varr.setAttribute('x1', cX); Varr.setAttribute('y1', cY);
     Varr.setAttribute('x2', cX + dirXn*Vlen); Varr.setAttribute('y2', cY + dirYn*Vlen);
     Varr.setAttribute('opacity', Vop);
+    
+    // Extend trajectory
+    const vTraj = document.getElementById('v-traj-line');
+    vTraj.setAttribute('x1', CX); vTraj.setAttribute('y1', CY);
+    vTraj.setAttribute('x2', CX + dirXn * 800); vTraj.setAttribute('y2', CY + dirYn * 800);
+    vTraj.setAttribute('opacity', (Vop * 0.8).toFixed(2));
     
     const Vlb = document.getElementById('V-lbl');
     Vlb.setAttribute('x', cX + dirXn*Vlen + 10);
