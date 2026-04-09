@@ -53,7 +53,7 @@ for(let i=0; i<nTeeth; i++) {
 gearTeethPath.setAttribute('d', path);
 
 let rPath = '';
-for(let i=-20; i<30; i++) {
+for(let i=-60; i<60; i++) {
   let y = i * (Math.PI*2*60)/nTeeth;
   rPath += `M 280 ${y} L 273 ${y+4} L 273 ${y+14} L 280 ${y+18} Z `;
 }
