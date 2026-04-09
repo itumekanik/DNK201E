@@ -1,31 +1,31 @@
 // ─── Dynamic Parameters ───
-let THETA_DOT = 3;   // rad/s (constant angular velocity)
-let R_COEFF = 0.4;   // r = R_COEFF * θ
-let THETA_EVAL = Math.PI / 3; // evaluation angle
-let THETA_DDOT = 0;  // constant ω → α = 0
+let THETA_DOT   = 3;          // rad/s (constant angular velocity)
+let R_COEFF     = 0.4;        // r = R_COEFF * θ
+let THETA_EVAL  = Math.PI / 3; // evaluation angle
+let THETA_DDOT  = 0;          // constant ω → α = 0
 
 function recalcParams() {
     const td = parseFloat(document.getElementById('input-thetadot').value);
     const rc = parseFloat(document.getElementById('input-rcoeff').value);
     const te = parseFloat(document.getElementById('input-thetaeval').value);
-    THETA_DOT = isNaN(td) ? 3 : td;
-    R_COEFF = isNaN(rc) || rc <= 0 ? 0.4 : rc;
+    THETA_DOT  = isNaN(td) ? 3 : td;
+    R_COEFF    = isNaN(rc) || rc <= 0 ? 0.4 : rc;
     THETA_EVAL = isNaN(te) || te <= 0 ? Math.PI / 3 : te;
     THETA_DDOT = 0;
 }
 
 // Spiral: r = R_COEFF * θ
 function rOfTheta(th) { return R_COEFF * th; }
-function rDot() { return R_COEFF * THETA_DOT; }   // ṙ = R_COEFF * θ̇
-function rDDot() { return R_COEFF * THETA_DDOT; }  // r̈ = R_COEFF * θ̈ = 0
+function rDot() { return R_COEFF * THETA_DOT; }   
+function rDDot() { return R_COEFF * THETA_DDOT; }  
 
 function getResults(th) {
-    const r = rOfTheta(th);
-    const rd = rDot();
+    const r   = rOfTheta(th);
+    const rd  = rDot();
     const rdd = rDDot();
-    const vr = rd;
+    const vr  = rd;
     const vth = r * THETA_DOT;
-    const ar = rdd - r * THETA_DOT * THETA_DOT;
+    const ar  = rdd - r * THETA_DOT * THETA_DOT;
     const ath = r * THETA_DDOT + 2 * rd * THETA_DOT;
     const vMag = Math.sqrt(vr * vr + vth * vth);
     const aMag = Math.sqrt(ar * ar + ath * ath);
@@ -47,128 +47,150 @@ let SCALE = 280; // pixels per meter
 
 function buildScene() {
     const maxR = rOfTheta(THETA_EVAL * 1.3);
-    SCALE = Math.min(280, (SW - CX - 40) / Math.max(maxR, 0.3));
+    SCALE = Math.min(300, (SW - CX - 60) / Math.max(maxR, 0.3));
 
     const svg = document.getElementById('sim-svg');
     svg.innerHTML = '';
     svg.setAttribute('viewBox', `0 0 ${SW} ${SH}`);
 
+    // Definitions
     const defs = el('defs');
     defs.innerHTML = `
-        <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0 8 3 0 6" fill="#059669"/>
-        </marker>
-        <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0 8 3 0 6" fill="#dc2626"/>
-        </marker>
-        <marker id="ah-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0 8 3 0 6" fill="#2563eb"/>
-        </marker>
-        <marker id="ah-orange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <polygon points="0 0 8 3 0 6" fill="#d97706"/>
-        </marker>`;
+        <pattern id="cadGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <line x1="40" y1="0" x2="40" y2="40" stroke="#1e293b" stroke-width="1.5" opacity="0.6"/>
+            <line x1="0" y1="40" x2="40" y2="40" stroke="#1e293b" stroke-width="1.5" opacity="0.6"/>
+        </pattern>
+        <pattern id="cadGridSmall" width="8" height="8" patternUnits="userSpaceOnUse">
+            <line x1="8" y1="0" x2="8" y2="8" stroke="#0f172a" stroke-width="0.5" opacity="0.5"/>
+            <line x1="0" y1="8" x2="8" y2="8" stroke="#0f172a" stroke-width="0.5" opacity="0.5"/>
+        </pattern>
+        <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0f172a"/>
+            <stop offset="100%" stop-color="#020617"/>
+        </radialGradient>
+        <linearGradient id="metalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#e2e8f0" />
+            <stop offset="50%" stop-color="#94a3b8" />
+            <stop offset="100%" stop-color="#64748b" />
+        </linearGradient>
+        <radialGradient id="pegGrad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#7dd3fc" />
+            <stop offset="50%" stop-color="#0284c7" />
+            <stop offset="100%" stop-color="#0c4a6e" />
+        </radialGradient>
+        <filter id="drop-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+            <feOffset dx="2" dy="5" result="offsetblur"/>
+            <feComponentTransfer><feFuncA type="linear" slope="0.6"/></feComponentTransfer>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3.5" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <marker id="vr-head" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#f87171"/></marker>
+        <marker id="vt-head" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#38bdf8"/></marker>
+        <marker id="v-head" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0 6 3 0 6" fill="#fbbf24"/></marker>
+    `;
     svg.appendChild(defs);
 
-    // Background
-    svg.appendChild(el('rect', { x: 0, y: 0, width: SW, height: SH, fill: '#fafbfe', rx: 8 }));
+    // Dynamic background (dark CAD aesthetics)
+    svg.appendChild(el('rect', { x: 0, y: 0, width: SW, height: SH, fill: 'url(#bgGlow)' }));
+    svg.appendChild(el('rect', { x: 0, y: 0, width: SW, height: SH, fill: 'url(#cadGridSmall)' }));
+    svg.appendChild(el('rect', { x: 0, y: 0, width: SW, height: SH, fill: 'url(#cadGrid)' }));
 
-    // Grid
-    const g = el('g', { opacity: '0.3' });
-    for (let i = -1; i <= 5; i++) {
-        const px = CX + i * SCALE * 0.2;
-        g.appendChild(el('line', { x1: px, y1: 20, x2: px, y2: SH - 20, stroke: '#cbd5e1', 'stroke-width': 0.5 }));
-    }
-    for (let i = -5; i <= 1; i++) {
-        const py = CY + i * SCALE * 0.2;
-        g.appendChild(el('line', { x1: 20, y1: py, x2: SW - 20, y2: py, stroke: '#cbd5e1', 'stroke-width': 0.5 }));
-    }
-    svg.appendChild(g);
+    // Reference axis
+    svg.appendChild(el('line', { x1: 20, y1: CY, x2: SW - 20, y2: CY, stroke: '#334155', 'stroke-width': 2, 'stroke-dasharray': '8,6' }));
+    svg.appendChild(el('line', { x1: CX, y1: 20, x2: CX, y2: SH - 20, stroke: '#334155', 'stroke-width': 2, 'stroke-dasharray': '8,6' }));
 
-    // Spiral path (full)
+    // Spiral path geometry
     let spiralD = '';
-    const spiralEnd = THETA_EVAL * 1.3;
-    for (let i = 0; i <= 200; i++) {
-        const th = (i / 200) * spiralEnd;
+    const spiralEnd = THETA_EVAL * 1.4;
+    const stepsPath = 150;
+    for (let i = 0; i <= stepsPath; i++) {
+        const th = (i / stepsPath) * spiralEnd;
         const r = rOfTheta(th);
         const px = CX + r * SCALE * Math.cos(th);
         const py = CY - r * SCALE * Math.sin(th);
-        spiralD += (i === 0 ? 'M' : 'L') + `${px.toFixed(1)},${py.toFixed(1)} `;
+        spiralD += (i === 0 ? 'M' : 'L') + `${px.toFixed(2)},${py.toFixed(2)} `;
     }
-    svg.appendChild(el('path', { d: spiralD, fill: 'none', stroke: '#94a3b8', 'stroke-width': 2, 'stroke-dasharray': '6,4' }));
 
-    // Animated spiral trace
-    const trace = el('path', { d: `M${CX},${CY}`, fill: 'none', stroke: '#7c3aed', 'stroke-width': 2.5, 'stroke-linecap': 'round' });
-    trace.id = 'spiral-trace';
-    svg.appendChild(trace);
+    // Outer thick rail track
+    svg.appendChild(el('path', { d: spiralD, fill: 'none', stroke: '#1e293b', 'stroke-width': 16, 'stroke-linecap': 'round', filter: 'url(#drop-shadow)' }));
+    svg.appendChild(el('path', { d: spiralD, fill: 'none', stroke: '#334155', 'stroke-width': 12, 'stroke-linecap': 'round' }));
+    // Inner glowing channel
+    svg.appendChild(el('path', { d: spiralD, fill: 'none', stroke: '#0ea5e9', 'stroke-width': 2.5, filter: 'url(#glow)' }));
 
-    // Slotted link line
-    const link = el('line', { x1: CX, y1: CY, x2: CX + 100, y2: CY, stroke: '#475569', 'stroke-width': 3, 'stroke-linecap': 'round' });
-    link.id = 'link-line';
-    svg.appendChild(link);
-
-    // Origin O
-    svg.appendChild(el('circle', { cx: CX, cy: CY, r: 6, fill: '#1e293b' }));
-    svg.appendChild(el('circle', { cx: CX, cy: CY, r: 3, fill: 'white' }));
-    const oLabel = el('text', { x: CX - 16, y: CY + 18, fill: '#1e293b', 'font-size': '14px', 'font-weight': '700', 'font-family': "'Inter', sans-serif" });
-    oLabel.textContent = 'O';
-    svg.appendChild(oLabel);
-
-    // Peg P
-    const peg = el('circle', { cx: CX, cy: CY, r: 7, fill: '#2563eb' });
-    peg.id = 'peg';
-    svg.appendChild(peg);
-    const pLabel = el('text', { x: CX + 12, y: CY - 12, fill: '#2563eb', 'font-size': '13px', 'font-weight': '700', 'font-family': "'Inter', sans-serif" });
-    pLabel.textContent = 'P';
-    pLabel.id = 'peg-label';
-    svg.appendChild(pLabel);
-
-    // Velocity arrows (vr and vθ)
-    const vrArrow = el('line', { x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#dc2626', 'stroke-width': 2.5, 'marker-end': 'url(#ah-red)' });
-    vrArrow.id = 'vr-arrow';
-    svg.appendChild(vrArrow);
-    const vrLabel = el('text', { x: 0, y: 0, fill: '#dc2626', 'font-size': '12px', 'font-weight': '700', 'font-family': "'JetBrains Mono', monospace" });
-    vrLabel.textContent = 'vᵣ';
-    vrLabel.id = 'vr-label';
-    svg.appendChild(vrLabel);
-
-    const vtArrow = el('line', { x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#2563eb', 'stroke-width': 2.5, 'marker-end': 'url(#ah-blue)' });
-    vtArrow.id = 'vt-arrow';
-    svg.appendChild(vtArrow);
-    const vtLabel = el('text', { x: 0, y: 0, fill: '#2563eb', 'font-size': '12px', 'font-weight': '700', 'font-family': "'JetBrains Mono', monospace" });
-    vtLabel.textContent = 'vθ';
-    vtLabel.id = 'vt-label';
-    svg.appendChild(vtLabel);
-
-    // Resultant v arrow
-    const vArrow = el('line', { x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#d97706', 'stroke-width': 2, 'stroke-dasharray': '4,3', 'marker-end': 'url(#ah-orange)' });
-    vArrow.id = 'v-arrow';
-    svg.appendChild(vArrow);
-
-    // Angle arc
-    const arc = el('path', { d: '', fill: 'none', stroke: '#059669', 'stroke-width': 1.5 });
-    arc.id = 'angle-arc';
-    svg.appendChild(arc);
-    const thLabel = el('text', { x: 0, y: 0, fill: '#059669', 'font-size': '12px', 'font-weight': '600', 'font-family': "'JetBrains Mono', monospace" });
+    // Angle Sweep Region (Solid fan)
+    const angleSweep = el('path', { id: 'angle-sweep', d: '', fill: 'rgba(16, 185, 129, 0.15)', stroke: '#10b981', 'stroke-width': 1.5 });
+    svg.appendChild(angleSweep);
+    const thLabel = el('text', { id: 'theta-label', x: 0, y: 0, fill: '#34d399', 'font-size': '14px', 'font-weight': '700', 'font-family': "'Inter', sans-serif" });
     thLabel.textContent = 'θ';
-    thLabel.id = 'theta-label';
     svg.appendChild(thLabel);
 
-    // r label
-    const rLabel = el('text', { x: 0, y: 0, fill: '#7c3aed', 'font-size': '11px', 'font-weight': '600', 'font-family': "'JetBrains Mono', monospace" });
-    rLabel.textContent = 'r';
-    rLabel.id = 'r-label';
-    svg.appendChild(rLabel);
+    // Interactive Animated Slotted Arm
+    const armGrp = el('g', { id: 'arm-group', filter: 'url(#drop-shadow)' });
+    const armLen = maxR * SCALE + 60;
+    armGrp.appendChild(el('rect', { x: -25, y: -18, width: armLen + 20, height: 36, rx: 18, fill: 'url(#metalGrad)' }));
+    // Mechanical details on arm
+    for(let i=1; i<armLen/30; i++) {
+        armGrp.appendChild(el('line', {x1: i*30, y1: -18, x2: i*30, y2: 18, stroke:'#cbd5e1', 'stroke-width':0.5, opacity:0.8}));
+    }
+    // The slot itself
+    armGrp.appendChild(el('rect', { x: 15, y: -5, width: armLen - 25, height: 10, rx: 5, fill: '#020617', stroke: '#475569', 'stroke-width':1.5 }));
+    svg.appendChild(armGrp);
 
-    // θ label on scene
-    const tLabel = el('text', { x: SW - 90, y: SH - 10, fill: '#475569', 'font-size': '13px', 'font-weight': '500', 'font-family': "'JetBrains Mono', monospace" });
-    tLabel.textContent = 'θ = 0.00 rad';
-    tLabel.id = 'theta-display';
-    svg.appendChild(tLabel);
+    // Animated PEG P
+    const pegGrp = el('g', { id: 'peg-group' });
+    pegGrp.appendChild(el('circle', { cx: 0, cy: 0, r: 12, fill: '#1e293b' }));
+    pegGrp.appendChild(el('circle', { cx: 0, cy: 0, r: 9, fill: 'url(#pegGrad)' }));
+    pegGrp.appendChild(el('circle', { cx: 0, cy: 0, r: 4, fill: '#f8fafc' }));
+    pegGrp.appendChild(el('circle', { cx: -2, cy: -2, r: 2, fill: '#ffffff', opacity:0.6 })); // Highlight reflection
+    const pLbl = el('text', { id: 'peg-label', x: 18, y: -18, fill: '#7dd3fc', 'font-size': '16px', 'font-weight': '800', 'font-family': "'Inter', sans-serif", filter:'url(#glow)' });
+    pLbl.textContent = 'P';
+    pegGrp.appendChild(pLbl);
+    svg.appendChild(pegGrp);
 
-    // Equation label
-    const eqLabel = el('text', { x: SW - 140, y: 25, fill: '#94a3b8', 'font-size': '12px', 'font-family': "'JetBrains Mono', monospace" });
-    eqLabel.textContent = `r = ${R_COEFF}θ  (spiral)`;
-    svg.appendChild(eqLabel);
+    // Origin Base O
+    const pivot = el('g');
+    pivot.appendChild(el('circle', { cx: CX, cy: CY, r: 26, fill: '#1e293b', stroke: '#475569', 'stroke-width': 2, filter: 'url(#drop-shadow)' }));
+    pivot.appendChild(el('circle', { cx: CX, cy: CY, r: 10, fill: 'url(#metalGrad)' }));
+    pivot.appendChild(el('circle', { cx: CX, cy: CY, r: 4, fill: '#0f172a' }));
+    // Pivot bolts
+    for(let i=0; i<6; i++) {
+        const ax = CX + 18 * Math.cos(i*Math.PI/3);
+        const ay = CY + 18 * Math.sin(i*Math.PI/3);
+        pivot.appendChild(el('circle', {cx:ax, cy:ay, r:2.5, fill:'#64748b'}));
+    }
+    const oLabel = el('text', { x: CX - 38, y: CY + 28, fill: '#f8fafc', 'font-size': '15px', 'font-weight': '800', 'font-family': "'Inter', sans-serif" });
+    oLabel.textContent = 'O';
+    pivot.appendChild(oLabel);
+    svg.appendChild(pivot);
+
+    // Velocity Vectors
+    const vrArr = el('line', { id: 'vr-arrow', x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#f87171', 'stroke-width': 3, 'marker-end': 'url(#vr-head)', filter:'url(#glow)' });
+    svg.appendChild(vrArr);
+    const vrLbl = el('text', { id: 'vr-label', x: 0, y: 0, fill: '#fca5a5', 'font-size': '14px', 'font-weight': '700', 'font-family': "'JetBrains Mono', monospace" });
+    vrLbl.textContent = 'vᵣ';
+    svg.appendChild(vrLbl);
+
+    const vtArr = el('line', { id: 'vt-arrow', x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#38bdf8', 'stroke-width': 3, 'marker-end': 'url(#vt-head)', filter:'url(#glow)' });
+    svg.appendChild(vtArr);
+    const vtLbl = el('text', { id: 'vt-label', x: 0, y: 0, fill: '#7dd3fc', 'font-size': '14px', 'font-weight': '700', 'font-family': "'JetBrains Mono', monospace" });
+    vtLbl.textContent = 'vθ';
+    svg.appendChild(vtLbl);
+
+    // V Resultant
+    const vArr = el('line', { id: 'v-arrow', x1: 0, y1: 0, x2: 0, y2: 0, stroke: '#fbbf24', 'stroke-width': 3.5, 'stroke-dasharray':'5,3', 'marker-end': 'url(#v-head)', filter:'url(#glow)' });
+    svg.appendChild(vArr);
+    const vLbl = el('text', { id: 'v-label', x: 0, y: 0, fill: '#fde047', 'font-size': '14px', 'font-weight': '700', 'font-family': "'JetBrains Mono', monospace" });
+    vLbl.textContent = 'v';
+    svg.appendChild(vLbl);
+
+    // Global Title Overlay
+    const titleLbl = el('text', { x: 20, y: 30, fill: '#94a3b8', 'font-size': '13px', 'font-weight':'600', 'font-family': "'JetBrains Mono', monospace" });
+    titleLbl.textContent = `SPIRAL KINEMATICS ENGINE | r = ${R_COEFF}θ`;
+    svg.appendChild(titleLbl);
 }
 
 function updateScene(theta) {
@@ -177,102 +199,108 @@ function updateScene(theta) {
     const px = CX + r * SCALE * Math.cos(theta);
     const py = CY - r * SCALE * Math.sin(theta);
 
-    // Peg position
-    document.getElementById('peg').setAttribute('cx', px);
-    document.getElementById('peg').setAttribute('cy', py);
-    document.getElementById('peg-label').setAttribute('x', px + 12);
-    document.getElementById('peg-label').setAttribute('y', py - 12);
+    // Arm Transformation (SVG Rotate uses CW for positive, so we use -theta for CCW mathematical sweep)
+    document.getElementById('arm-group').setAttribute('transform', `translate(${CX},${CY}) rotate(${-theta * 180 / Math.PI})`);
 
-    // Link line
-    const linkLen = Math.max(r * SCALE + 30, 50);
-    document.getElementById('link-line').setAttribute('x2', CX + linkLen * Math.cos(theta));
-    document.getElementById('link-line').setAttribute('y2', CY - linkLen * Math.sin(theta));
+    // Peg Translation
+    document.getElementById('peg-group').setAttribute('transform', `translate(${px},${py})`);
 
-    // Spiral trace
-    let traceD = '';
-    const steps = Math.max(Math.round(theta / THETA_EVAL * 150), 2);
-    for (let i = 0; i <= steps; i++) {
-        const th = (i / steps) * theta;
-        const ri = rOfTheta(th);
-        const tx = CX + ri * SCALE * Math.cos(th);
-        const ty = CY - ri * SCALE * Math.sin(th);
-        traceD += (i === 0 ? 'M' : 'L') + `${tx.toFixed(1)},${ty.toFixed(1)} `;
+    // Angle Sweep Arc
+    const arcR = 55;
+    if (theta > 0.05) {
+        // large arc flag: if angle > 180 (Math.PI) it's 1, else 0.
+        const largeArc = theta > Math.PI ? 1 : 0;
+        const ax = CX + arcR * Math.cos(theta);
+        const ay = CY - arcR * Math.sin(theta);
+        // Draw pizza slice
+        const arcPath = `M ${CX} ${CY} L ${CX + arcR} ${CY} A ${arcR} ${arcR} 0 ${largeArc} 0 ${ax} ${ay} Z`;
+        document.getElementById('angle-sweep').setAttribute('d', arcPath);
+        document.getElementById('theta-label').setAttribute('x', CX + (arcR + 15) * Math.cos(theta / 2) - 5);
+        document.getElementById('theta-label').setAttribute('y', CY - (arcR + 15) * Math.sin(theta / 2) + 5);
+        document.getElementById('theta-label').setAttribute('opacity', 1);
+    } else {
+        document.getElementById('angle-sweep').setAttribute('d', '');
+        document.getElementById('theta-label').setAttribute('opacity', 0);
     }
-    document.getElementById('spiral-trace').setAttribute('d', traceD);
 
-    // Angle arc
-    const arcR = 40;
-    const arcSteps = 30;
-    let arcD = '';
-    for (let i = 0; i <= arcSteps; i++) {
-        const a = (i / arcSteps) * theta;
-        const ax = CX + arcR * Math.cos(a);
-        const ay = CY - arcR * Math.sin(a);
-        arcD += (i === 0 ? 'M' : 'L') + `${ax.toFixed(1)},${ay.toFixed(1)} `;
-    }
-    document.getElementById('angle-arc').setAttribute('d', arcD);
-    document.getElementById('theta-label').setAttribute('x', CX + (arcR + 10) * Math.cos(theta / 2));
-    document.getElementById('theta-label').setAttribute('y', CY - (arcR + 10) * Math.sin(theta / 2) + 4);
-
-    // r label
-    const midR = r / 2;
-    document.getElementById('r-label').setAttribute('x', CX + midR * SCALE * Math.cos(theta) - 10);
-    document.getElementById('r-label').setAttribute('y', CY - midR * SCALE * Math.sin(theta) - 8);
-
-    // Velocity arrows (scale for visibility)
+    // Velocity Vectors (Scaling them cleanly relative to SVG size)
     const res = getResults(theta);
-    const vScale = SCALE * 0.25;
+    // Base vector length for visual comfort (increased for better visibility at 0 rad)
+    const vScale = Math.min(70, (180 / Math.max(res.vMag, 0.1)));
 
-    // vr: radial direction (along r)
-    const vrLen = res.vr * vScale;
-    const vrx2 = px + vrLen * Math.cos(theta);
-    const vry2 = py - vrLen * Math.sin(theta);
-    document.getElementById('vr-arrow').setAttribute('x1', px);
-    document.getElementById('vr-arrow').setAttribute('y1', py);
-    document.getElementById('vr-arrow').setAttribute('x2', vrx2);
-    document.getElementById('vr-arrow').setAttribute('y2', vry2);
-    document.getElementById('vr-label').setAttribute('x', vrx2 + 5);
-    document.getElementById('vr-label').setAttribute('y', vry2 - 5);
+    const vrLen = Math.abs(res.vr) * vScale;
+    const vrDir = res.vr >= 0 ? 1 : -1;
+    const vrx2 = px + vrDir * vrLen * Math.cos(theta);
+    const vry2 = py - vrDir * vrLen * Math.sin(theta);
+    
+    if (vrLen < 2) {
+        document.getElementById('vr-arrow').setAttribute('opacity', '0');
+        document.getElementById('vr-label').setAttribute('opacity', '0');
+    } else {
+        document.getElementById('vr-arrow').setAttribute('opacity', '1');
+        document.getElementById('vr-label').setAttribute('opacity', '1');
+        document.getElementById('vr-arrow').setAttribute('x1', px);
+        document.getElementById('vr-arrow').setAttribute('y1', py);
+        document.getElementById('vr-arrow').setAttribute('x2', vrx2);
+        document.getElementById('vr-arrow').setAttribute('y2', vry2);
+        document.getElementById('vr-label').setAttribute('x', vrx2 + 8 * Math.cos(theta));
+        document.getElementById('vr-label').setAttribute('y', vry2 - 8 * Math.sin(theta));
+    }
 
-    // vθ: transverse direction (perpendicular to r, CCW)
-    const vtLen = res.vth * vScale;
-    const vtx2 = px + vtLen * Math.cos(theta + Math.PI / 2);
-    const vty2 = py - vtLen * Math.sin(theta + Math.PI / 2);
-    document.getElementById('vt-arrow').setAttribute('x1', px);
-    document.getElementById('vt-arrow').setAttribute('y1', py);
-    document.getElementById('vt-arrow').setAttribute('x2', vtx2);
-    document.getElementById('vt-arrow').setAttribute('y2', vty2);
-    document.getElementById('vt-label').setAttribute('x', vtx2 + 5);
-    document.getElementById('vt-label').setAttribute('y', vty2 - 5);
+    const vtLen = Math.abs(res.vth) * vScale;
+    const vtDir = res.vth >= 0 ? 1 : -1;
+    // Transverse direction is theta + 90 deg (Pi/2)
+    const vtx2 = px + vtDir * vtLen * Math.cos(theta + Math.PI / 2);
+    const vty2 = py - vtDir * vtLen * Math.sin(theta + Math.PI / 2);
+    
+    if (vtLen < 2) {
+        document.getElementById('vt-arrow').setAttribute('opacity', '0');
+        document.getElementById('vt-label').setAttribute('opacity', '0');
+    } else {
+        document.getElementById('vt-arrow').setAttribute('opacity', '1');
+        document.getElementById('vt-label').setAttribute('opacity', '1');
+        document.getElementById('vt-arrow').setAttribute('x1', px);
+        document.getElementById('vt-arrow').setAttribute('y1', py);
+        document.getElementById('vt-arrow').setAttribute('x2', vtx2);
+        document.getElementById('vt-arrow').setAttribute('y2', vty2);
+        document.getElementById('vt-label').setAttribute('x', vtx2 + 8 * Math.cos(theta + Math.PI/2));
+        document.getElementById('vt-label').setAttribute('y', vty2 - 8 * Math.sin(theta + Math.PI/2));
+    }
 
-    // Resultant v
-    const vx2 = px + (res.vr * Math.cos(theta) + res.vth * Math.cos(theta + Math.PI / 2)) * vScale;
-    const vy2 = py - (res.vr * Math.sin(theta) + res.vth * Math.sin(theta + Math.PI / 2)) * vScale;
-    document.getElementById('v-arrow').setAttribute('x1', px);
-    document.getElementById('v-arrow').setAttribute('y1', py);
-    document.getElementById('v-arrow').setAttribute('x2', vx2);
-    document.getElementById('v-arrow').setAttribute('y2', vy2);
+    const vMagLen = res.vMag * vScale;
+    const vx2 = px + res.vr * vScale * Math.cos(theta) + res.vth * vScale * Math.cos(theta + Math.PI / 2);
+    const vy2 = py - res.vr * vScale * Math.sin(theta) - res.vth * vScale * Math.sin(theta + Math.PI / 2);
+    
+    if (vMagLen < 2) {
+        document.getElementById('v-arrow').setAttribute('opacity', '0');
+        document.getElementById('v-label').setAttribute('opacity', '0');
+    } else {
+        document.getElementById('v-arrow').setAttribute('opacity', '1');
+        document.getElementById('v-label').setAttribute('opacity', '1');
+        document.getElementById('v-arrow').setAttribute('x1', px);
+        document.getElementById('v-arrow').setAttribute('y1', py);
+        document.getElementById('v-arrow').setAttribute('x2', vx2);
+        document.getElementById('v-arrow').setAttribute('y2', vy2);
+        document.getElementById('v-label').setAttribute('x', vx2 + 10);
+        // Prevent overlap of concurrent resultant text at theta=0
+        if (vtLen < 2) {
+            document.getElementById('v-label').setAttribute('y', vy2 - 25);
+        } else {
+            document.getElementById('v-label').setAttribute('y', vy2 - 10);
+        }
+    }
 
-    // Labels
-    document.getElementById('theta-display').textContent = `θ = ${theta.toFixed(3)} rad`;
-
-    // Live data
+    // Live Dashboard Update
     document.getElementById('live-theta').textContent = theta.toFixed(3) + ' rad';
     document.getElementById('live-r').textContent = r.toFixed(4) + ' m';
     document.getElementById('live-vr').textContent = res.vr.toFixed(2) + ' m/s';
     document.getElementById('live-vt').textContent = res.vth.toFixed(2) + ' m/s';
 
-    // Result boxes
-    document.getElementById('res-vr').textContent = res.vr.toFixed(3) + ' m/s';
-    document.getElementById('res-vt').textContent = res.vth.toFixed(3) + ' m/s';
-    document.getElementById('res-ar').textContent = res.ar.toFixed(3) + ' m/s²';
-    document.getElementById('res-at').textContent = res.ath.toFixed(3) + ' m/s²';
-
     document.getElementById('time-slider').value = theta;
     document.getElementById('slider-val').textContent = theta.toFixed(3) + ' rad';
 }
 
-// ─── Animation ───
+// ─── Animation Control ───
 let animTimeline = null, isPlaying = false;
 
 function rebuildAll() {
@@ -290,35 +318,45 @@ function updateSolutionCards() {
     const res = getResults(THETA_EVAL);
     const cards = document.querySelectorAll('.step-card');
     if (cards.length < 4) return;
-    // Derivatives
-    cards[0].querySelector('.formula:nth-child(3)').innerHTML = `ṙ = ${R_COEFF}·θ̇ = ${R_COEFF}×${THETA_DOT} = ${(R_COEFF * THETA_DOT).toFixed(2)}`;
-    cards[0].querySelector('.formula:nth-child(4)').innerHTML = `r̈ = ${R_COEFF}·θ̈ = 0`;
-    // At θ
-    cards[1].querySelector('.formula').innerHTML = `r = ${R_COEFF}×${THETA_EVAL.toFixed(4)} = ${res.r.toFixed(4)} m`;
-    cards[1].querySelector('.result').innerHTML = `ṙ = ${res.rd.toFixed(2)} | r̈ = ${res.rdd.toFixed(2)}`;
-    // Velocity
-    cards[2].querySelector('.formula:nth-child(3)').innerHTML = `vᵣ = ṙ = ${res.vr.toFixed(2)} m/s`;
-    cards[2].querySelector('.formula:nth-child(4)').innerHTML = `vθ = rθ̇ = ${res.r.toFixed(4)}×${THETA_DOT} = ${res.vth.toFixed(2)} m/s`;
-    // Acceleration
-    cards[3].querySelector('.formula:nth-child(3)').innerHTML = `aᵣ = r̈ − rθ̇² = 0 − ${res.r.toFixed(4)}×${THETA_DOT}² = ${res.ar.toFixed(2)} m/s²`;
-    cards[3].querySelector('.formula:nth-child(4)').innerHTML = `aθ = rθ̈ + 2ṙθ̇ = 0 + 2×${res.rd.toFixed(2)}×${THETA_DOT} = ${res.ath.toFixed(2)} m/s²`;
+    cards[0].querySelector('.formula:nth-child(3)').innerHTML = `\\( \\dot{r} = ${R_COEFF} \\dot{\\theta} = ${R_COEFF} \\times ${THETA_DOT} = ${(R_COEFF * THETA_DOT).toFixed(2)} \\)`;
+    cards[0].querySelector('.formula:nth-child(4)').innerHTML = `\\( \\ddot{r} = ${R_COEFF} \\ddot{\\theta} = 0 \\)`;
+    cards[1].querySelector('.formula').innerHTML = `\\( r = ${R_COEFF} \\times ${THETA_EVAL.toFixed(4)} = ${res.r.toFixed(4)}\\text{ m} \\)`;
+    cards[1].querySelector('.result').innerHTML = `\\( \\dot{r} = ${res.rd.toFixed(2)} \\quad | \\quad \\ddot{r} = ${res.rdd.toFixed(2)} \\)`;
+    cards[2].querySelector('.formula:nth-child(3)').innerHTML = `\\( v_r = \\dot{r} = ${res.vr.toFixed(2)}\\text{ m/s} \\)`;
+    cards[2].querySelector('.formula:nth-child(4)').innerHTML = `\\( v_{\\theta} = r \\dot{\\theta} = ${res.r.toFixed(4)} \\times ${THETA_DOT} = ${res.vth.toFixed(2)}\\text{ m/s} \\)`;
+    cards[3].querySelector('.formula:nth-child(3)').innerHTML = `\\( a_r = \\ddot{r} - r \\dot{\\theta}^2 = 0 - ${res.r.toFixed(4)} \\times ${THETA_DOT}^2 = ${res.ar.toFixed(2)}\\text{ m/s}^2 \\)`;
+    cards[3].querySelector('.formula:nth-child(4)').innerHTML = `\\( a_{\\theta} = r \\ddot{\\theta} + 2 \\dot{r} \\dot{\\theta} = 0 + 2 \\times ${res.rd.toFixed(2)} \\times ${THETA_DOT} = ${res.ath.toFixed(2)}\\text{ m/s}^2 \\)`;
+    
+    // Auto re-typeset using MathJax if loaded
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+    
+    // Result grid upper
+    document.getElementById('res-vr').textContent = res.vr.toFixed(3) + ' m/s';
+    document.getElementById('res-vt').textContent = res.vth.toFixed(3) + ' m/s';
+    document.getElementById('res-ar').textContent = res.ar.toFixed(3) + ' m/s²';
+    document.getElementById('res-at').textContent = res.ath.toFixed(3) + ' m/s²';
 }
 
 function playAnimation() {
-    if (isPlaying) return;
+    if (isPlaying) {
+        pauseAnimation();
+        return;
+    }
     isPlaying = true;
     document.getElementById('btn-play').textContent = '⏸ Pause';
-    const duration = (THETA_EVAL / THETA_DOT) * 1000; // real-time
+    const duration = (THETA_EVAL / THETA_DOT) * 1000 * 2.5; // Scaled for better viewing speed
     const animObj = { theta: parseFloat(document.getElementById('time-slider').value) || 0 };
+    if (animObj.theta >= THETA_EVAL - 0.001) animObj.theta = 0;
+    
     animTimeline = anime({
         targets: animObj, theta: THETA_EVAL,
         duration: duration * (1 - animObj.theta / THETA_EVAL),
-        easing: 'linear',
+        easing: 'easeOutSine', // Cinematic slow approaching to final angle
         update: () => updateScene(animObj.theta),
         complete: () => {
             isPlaying = false;
             document.getElementById('btn-play').textContent = '▶ Play';
-            document.querySelectorAll('.step-card').forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 200));
+            document.querySelectorAll('.step-card').forEach((el, i) => setTimeout(() => el.classList.add('visible'), i * 150));
         }
     });
 }
@@ -333,19 +371,14 @@ function resetAnimation() {
     if (animTimeline) animTimeline.pause();
     isPlaying = false;
     document.getElementById('btn-play').textContent = '▶ Play';
+    document.getElementById('time-slider').value = 0;
     updateScene(0);
     document.querySelectorAll('.step-card').forEach(el => el.classList.remove('visible'));
 }
 
 // ─── Modal ───
 function openModal() {
-    const res = getResults(THETA_EVAL);
-    document.getElementById('modal-result-vel').innerHTML =
-        `vᵣ = <b>${res.vr.toFixed(2)} m/s</b> &nbsp;|&nbsp; vθ = <b>${res.vth.toFixed(2)} m/s</b> &nbsp;|&nbsp; |v| = <b>${res.vMag.toFixed(2)} m/s</b>`;
-    document.getElementById('modal-result-acc').innerHTML =
-        `aᵣ = <b>${res.ar.toFixed(2)} m/s²</b> &nbsp;|&nbsp; aθ = <b>${res.ath.toFixed(2)} m/s²</b> &nbsp;|&nbsp; |a| = <b>${res.aMag.toFixed(2)} m/s²</b>`;
     document.getElementById('theory-modal').classList.add('active');
-    if (window.MathJax && MathJax.typeset) MathJax.typeset();
 }
 function closeModal() {
     document.getElementById('theory-modal').classList.remove('active');
@@ -357,9 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     buildScene();
     updateScene(0);
 
-    document.getElementById('btn-play').addEventListener('click', () => {
-        if (isPlaying) pauseAnimation(); else playAnimation();
-    });
+    document.getElementById('btn-play').addEventListener('click', playAnimation);
     document.getElementById('btn-reset').addEventListener('click', resetAnimation);
     document.getElementById('btn-apply').addEventListener('click', rebuildAll);
     document.getElementById('btn-theory').addEventListener('click', openModal);
@@ -376,4 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isPlaying) pauseAnimation();
         updateScene(parseFloat(e.target.value));
     });
+    
+    // Initial Latex render trigger
+    updateSolutionCards();
 });
