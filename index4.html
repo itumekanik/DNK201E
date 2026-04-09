@@ -83,12 +83,12 @@
         <div class="result-row">
           <div class="result-box">
             <div class="rb-label">Total Mass</div>
-            <div class="rb-formula">m_tot = m_S + m_M</div>
+            <div class="rb-formula">\( m_{tot} = m_S + m_M \)</div>
             <div class="rb-value" id="res-mTot">—</div>
           </div>
           <div class="result-box">
             <div class="rb-label">x-momentum (before)</div>
-            <div class="rb-formula">p_x = m_S·v_S + m_M·(−v_M cos φ)</div>
+            <div class="rb-formula">\( p_x = m_S v_S + m_M (-v_M \cos\varphi) \)</div>
             <div class="rb-value" id="res-px">—</div>
           </div>
         </div>
@@ -97,12 +97,12 @@
         <div class="result-row">
           <div class="result-box">
             <div class="rb-label">y-momentum (before)</div>
-            <div class="rb-formula">p_y = m_M·(+v_M sin φ)</div>
+            <div class="rb-formula">\( p_y = m_M (v_M \sin\varphi) \)</div>
             <div class="rb-value" id="res-py">—</div>
           </div>
           <div class="result-box">
             <div class="rb-label">Post-impact V_x</div>
-            <div class="rb-formula">V_x = p_x / m_tot</div>
+            <div class="rb-formula">\( V_x = \frac{p_x}{m_{tot}} \)</div>
             <div class="rb-value" id="res-Vx">—</div>
           </div>
         </div>
@@ -111,12 +111,12 @@
         <div class="result-row">
           <div class="result-box">
             <div class="rb-label">Post-impact V_y</div>
-            <div class="rb-formula">V_y = p_y / m_tot</div>
+            <div class="rb-formula">\( V_y = \frac{p_y}{m_{tot}} \)</div>
             <div class="rb-value" id="res-Vy">—</div>
           </div>
           <div class="result-box">
             <div class="rb-label">Speed in km/h</div>
-            <div class="rb-formula">|V| × 3600</div>
+            <div class="rb-formula">\( |V| \times 3600 \)</div>
             <div class="rb-value" id="res-V-kmh">—</div>
           </div>
         </div>
@@ -125,12 +125,12 @@
         <div class="result-row">
           <div class="result-box highlight">
             <div class="rb-label">|V| — Magnitude ✦ Answer</div>
-            <div class="rb-formula">|V| = √(V_x² + V_y²)</div>
+            <div class="rb-formula">\( |V| = \sqrt{V_x^2 + V_y^2} \)</div>
             <div class="rb-value" id="res-V">—</div>
           </div>
           <div class="result-box answer-beta">
             <div class="rb-label">β — Angle ✦ Answer</div>
-            <div class="rb-formula">β = arctan(|V_y| / V_x)</div>
+            <div class="rb-formula">\( \beta = \arctan\left(\frac{|V_y|}{V_x}\right) \)</div>
             <div class="rb-value" id="res-beta">—</div>
           </div>
         </div>
@@ -145,28 +145,28 @@
     <div class="step-card">
       <div class="step-label">Principle</div>
       <h3>Linear Impulse-Momentum</h3>
-      <div class="formula">Σ(m·v)_before = m_tot·V</div>
-      <div class="formula">No ext. impulse → conserved</div>
+      <div class="formula">\( \sum (m v)_{before} = m_{tot} V \)</div>
+      <div class="formula">No ext. impulse \(\implies\) conserved</div>
     </div>
     <div class="step-card">
       <div class="step-label">x-Direction</div>
       <h3>Momentum in x</h3>
-      <div class="formula">m_S·v_S + m_M·(−v_M cosφ)</div>
-      <div class="formula">= (m_S+m_M)·V_x</div>
+      <div class="formula">\( m_S v_S + m_M (-v_M \cos\phi) \)</div>
+      <div class="formula">\( = (m_S + m_M) V_x \)</div>
       <div class="result-pill" id="step-Vx">V_x = ?</div>
     </div>
     <div class="step-card">
       <div class="step-label">y-Direction</div>
       <h3>Momentum in y</h3>
-      <div class="formula">0 + m_M·(+v_M sinφ)</div>
-      <div class="formula">= (m_S+m_M)·V_y</div>
+      <div class="formula">\( 0 + m_M (v_M \sin\phi) \)</div>
+      <div class="formula">\( = (m_S + m_M) V_y \)</div>
       <div class="result-pill" id="step-Vy">V_y = ?</div>
     </div>
     <div class="step-card">
       <div class="step-label">Resultant</div>
       <h3>Speed &amp; Direction</h3>
-      <div class="formula">|V| = √(V_x² + V_y²)</div>
-      <div class="formula">β = arctan(V_y / V_x)</div>
+      <div class="formula">\( |V| = \sqrt{V_x^2 + V_y^2} \)</div>
+      <div class="formula">\( \beta = \arctan(V_y / V_x) \)</div>
       <div class="result-pill" id="step-Vbeta">V = ? | β = ?</div>
     </div>
   </div>
