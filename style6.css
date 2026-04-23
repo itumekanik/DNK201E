@@ -44,7 +44,7 @@ html, body {
   background-clip: text;
 }
 
-.param-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.param-inputs { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
 .param-group { display: flex; align-items: center; gap: 4px; }
 .param-group label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
 .param-group input {
