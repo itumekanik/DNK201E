@@ -150,12 +150,10 @@ function updateVisuals(t) {
     
     // Velocity vector (Scale: 1m/s = 50px)
     let vLen = res.v * 50;
-    UI.vecV.setAttribute('x2', vLen);
-    UI.vecV.setAttribute('y2', 0);
-    if(vLen < 0) {
-        UI.vecV.setAttribute('x1', 0);
-        UI.vecV.setAttribute('x2', vLen);
+    if (Math.abs(vLen) < 1) {
+        UI.vecV.setAttribute('display', 'none');
     } else {
+        UI.vecV.setAttribute('display', 'block');
         UI.vecV.setAttribute('x1', 0);
         UI.vecV.setAttribute('x2', vLen);
     }
@@ -281,7 +279,7 @@ function updateSolutionCards() {
         eqText = `\\( \\ddot{x} + ${(2*s.zeta*s.wn).toFixed(dec)} \\dot{x} + ${(s.wn*s.wn).toFixed(dec)} x = 0 \\)`;
         rootText = `\\( \\omega_d = \\omega_n \\sqrt{1-\\zeta^2} = ${s.wd.toFixed(dec)} \\text{ rad/s} \\)`;
         
-        UI.stepFunc1.innerHTML = `\\( B = x_0 = ${s.B.toFixed(dec)}, \\quad A = \\frac{v_0 + \\zeta\\omega_n x_0}{\\omega_d} = ${s.A.toFixed(dec)} \\)`;
+        UI.stepFunc1.innerHTML = `\\( A = \\frac{v_0 + \\zeta\\omega_n x_0}{\\omega_d} = ${s.A.toFixed(dec)}, \\quad B = x_0 = ${s.B.toFixed(dec)} \\)`;
         funcText = `\\( x(t) = e^{-${d.toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) \\right) \\)`;
     } else if (s.regime === 'critical') {
         regText = `\\( \\zeta = 1 \\implies \\text{Critically Damped} \\)`;
@@ -327,8 +325,8 @@ function updateSolutionCards() {
           </div>
           <p>Applying the initial conditions \\( x(0) = ${s.x0} \\) and \\( \\dot{x}(0) = ${s.v0} \\) to find A and B:</p>
           <div class="modal-formula">
-            $$ B = ${s.x0} $$
             $$ A = \\frac{${s.v0} + (${s.zeta.toFixed(dec)})(${s.wn.toFixed(dec)})(${s.x0})}{${s.wd.toFixed(dec)}} = ${s.A.toFixed(dec)} $$
+            $$ B = ${s.x0} $$
           </div>
           <p>Final Position Function:</p>
           <div class="modal-result">

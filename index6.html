@@ -95,9 +95,9 @@
                   <circle cx="30" cy="30" r="10" fill="#475569" stroke="#1e293b" stroke-width="2"/>
                   
                   <!-- Coordinate System Origin text -->
-                  <text x="0" y="-50" fill="#1e293b" font-size="14" font-weight="700" text-anchor="middle">m</text>
+                  <text x="0" y="-70" fill="#1e293b" font-size="14" font-weight="700" text-anchor="middle">m</text>
                   <!-- Velocity Vector -->
-                  <line id="vec-v" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="3" marker-end="url(#arrowhead)"/>
+                  <line id="vec-v" x1="0" y1="-55" x2="0" y2="-55" stroke="#059669" stroke-width="3" marker-end="url(#arrowhead)"/>
                 </g>
               </g>
               
@@ -106,8 +106,8 @@
               <text x="280" y="90" fill="#94a3b8" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">x=0</text>
             </g>
             <defs>
-              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669" />
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                <path d="M 0 1 L 10 5 L 0 9 L 3 5 z" fill="#059669" />
               </marker>
             </defs>
           </svg>
@@ -206,7 +206,7 @@
           <h3>🔹 Initial Conditions</h3>
           <p>Constants A and B are found using \( x(0) = x_0 \) and \( \dot{x}(0) = v_0 \). For an underdamped system, this yields:</p>
           <div class="modal-formula">
-            $$ B = x_0, \quad A = \frac{v_0 + \zeta\omega_n x_0}{\omega_d} $$
+            $$ A = \frac{v_0 + \zeta\omega_n x_0}{\omega_d}, \quad B = x_0 $$
           </div>
         </div>
         
