@@ -29,7 +29,6 @@ const UI = {
     damperWall: document.getElementById('damper-line-wall'),
     damperPiston: document.getElementById('damper-piston'),
     damperRod: document.getElementById('damper-rod'),
-    vecV: document.getElementById('vec-v'),
     
     // MathJax Steps
     stepWn: document.getElementById('step-wn'),
@@ -148,31 +147,22 @@ function updateVisuals(t) {
     let cartX = 280 + dx;
     UI.cartGroup.setAttribute('transform', `translate(${cartX}, 0)`);
     
-    // Velocity vector (Scale: 1m/s = 50px)
-    let vLen = res.v * 50;
-    if (Math.abs(vLen) < 1) {
-        UI.vecV.setAttribute('display', 'none');
-    } else {
-        UI.vecV.setAttribute('display', 'block');
-        UI.vecV.setAttribute('x1', 0);
-        UI.vecV.setAttribute('x2', vLen);
-    }
-    
     // Spring (yOffset = 10, connecting to left side of cart)
     let springAttachX = cartX - 50;
     UI.springPath.setAttribute('d', drawSpring(springAttachX, 10, 8));
     
     // Damper
-    // Cylinder is static, drawn from x=40 to x=180 in SVG. Wall line is x=20 to x=40.
-    // Piston needs to slide inside. Piston width = 8.
-    // Let's position piston relative to cart so rod length is fixed at 120.
     // Piston center connects to rod.
     let rodLength = 120;
     let pistonX = cartX - 50 - rodLength; 
     
     UI.damperPiston.setAttribute('x', pistonX);
-    UI.damperRod.setAttribute('x1', pistonX + 8);
-    UI.damperRod.setAttribute('x2', cartX - 50);
+    UI.damperRod.setAttribute('x', pistonX + 8);
+    UI.damperRod.setAttribute('width', (cartX - 50) - (pistonX + 8));
+    
+    // Cart shadow
+    let elShadow = document.getElementById('cart-shadow');
+    if(elShadow) elShadow.setAttribute('cx', cartX);
     
     // Update labels
     UI.valT.textContent = t.toFixed(2) + " s";
