@@ -72,17 +72,19 @@
                 <!-- Spring -->
                 <path id="spring-path" fill="none" stroke="#475569" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" filter="url(#dropShadow)"/>
                 
-                <!-- Damper Mount -->
-                <line id="damper-line-wall" x1="20" y1="-25" x2="40" y2="-25" stroke="url(#metalGrad)" stroke-width="8" stroke-linecap="round" filter="url(#dropShadow)"/>
-                
                 <!-- Damper Rod -->
                 <rect id="damper-rod" x="138" y="-28" width="112" height="6" fill="url(#metalGrad)" stroke="#475569" stroke-width="1" rx="2" filter="url(#dropShadow)"/>
                 
                 <!-- Damper Piston (Rect) -->
                 <rect id="damper-piston" x="130" y="-33" width="8" height="16" fill="#1e293b" stroke="#0f172a" stroke-width="1" rx="2" filter="url(#dropShadow)"/>
                 
-                <!-- Cylinder Body (Glass, drawn after piston so it overlays it) -->
-                <rect id="damper-cylinder" x="40" y="-36" width="140" height="22" fill="url(#glassGrad)" stroke="#cbd5e1" stroke-width="1.5" rx="3" filter="url(#dropShadow)"/>
+                <!-- Cylinder Body (Glass, extended to x=28 to enter the bracket) -->
+                <rect id="damper-cylinder" x="28" y="-36" width="152" height="22" fill="url(#glassGrad)" stroke="#cbd5e1" stroke-width="1.5" rx="3" filter="url(#dropShadow)"/>
+
+                <!-- Damper Wall Mount Bracket (drawn over cylinder edge to clamp it) -->
+                <path d="M 20 -42 L 34 -42 L 34 -8 L 20 -8 Z" fill="#334155" stroke="#0f172a" stroke-width="1.5" filter="url(#dropShadow)"/>
+                <!-- Bracket Pin -->
+                <circle cx="28" cy="-25" r="5" fill="#cbd5e1" stroke="#0f172a" stroke-width="1.5"/>
 
                 <!-- Floor tracking shadow -->
                 <ellipse id="cart-shadow" cx="280" cy="40" rx="55" ry="3.5" fill="rgba(0,0,0,0.3)" filter="url(#blurShadow)"/>
