@@ -179,34 +179,41 @@
         </div>
         <div class="modal-section">
           <h3>🔹 Equation of Motion</h3>
-          <p>The sum of forces acting on the mass (spring force $-kx$ and damping force $-c\dot{x}$) equals $m\ddot{x}$:</p>
+          <p>The sum of forces acting on the mass (spring force \( -kx \) and damping force \( -c\dot{x} \)) equals \( m\ddot{x} \):</p>
           <div class="modal-formula">
             $$ m \ddot{x} + c \dot{x} + k x = 0 $$
           </div>
-          <p>Dividing by mass $m$, we rewrite this in standard form:</p>
+          <p>Dividing by mass \( m \), we rewrite this in standard form:</p>
           <div class="modal-formula">
             $$ \ddot{x} + 2\zeta\omega_n \dot{x} + \omega_n^2 x = 0 $$
           </div>
-          <p>where $\omega_n = \sqrt{k/m}$ is the natural frequency, and $\zeta = \frac{c}{2\sqrt{km}}$ is the damping ratio. The variable $d = \zeta\omega_n = \frac{c}{2m}$ is often called the exponential decay rate.</p>
+          <p>where \( \omega_n = \sqrt{k/m} \) is the natural frequency, and \( \zeta = \frac{c}{2\sqrt{km}} \) is the damping ratio. The variable \( d = \zeta\omega_n = \frac{c}{2m} \) is often called the exponential decay rate.</p>
         </div>
         <div class="modal-section">
           <h3>🔹 Solution Regimes</h3>
-          <p>The roots of the characteristic equation $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$ dictate the nature of the motion:</p>
+          <p>The roots of the characteristic equation \( s^2 + 2\zeta\omega_n s + \omega_n^2 = 0 \) dictate the nature of the motion:</p>
           <ul>
-            <li><b>Underdamped ($\zeta < 1$):</b> Roots are complex conjugate. The system oscillates with exponential decay. 
+            <li><b>Underdamped (\( \zeta < 1 \)):</b> Roots are complex conjugate. The system oscillates with exponential decay. 
                 $$x(t) = e^{-\zeta\omega_n t} \left( A \cos(\omega_d t) + B \sin(\omega_d t) \right)$$
-                where $\omega_d = \omega_n \sqrt{1 - \zeta^2}$ is the damped natural frequency.</li>
-            <li><b>Critically Damped ($\zeta = 1$):</b> Roots are real and repeated. The system returns to equilibrium as fast as possible without oscillating.
+                where \( \omega_d = \omega_n \sqrt{1 - \zeta^2} \) is the damped natural frequency.</li>
+            <li><b>Critically Damped (\( \zeta = 1 \)):</b> Roots are real and repeated. The system returns to equilibrium as fast as possible without oscillating.
                 $$x(t) = (A + Bt) e^{-\omega_n t}$$</li>
-            <li><b>Overdamped ($\zeta > 1$):</b> Roots are real and distinct. The system returns to equilibrium slowly without oscillating.
+            <li><b>Overdamped (\( \zeta > 1 \)):</b> Roots are real and distinct. The system returns to equilibrium slowly without oscillating.
                 $$x(t) = A e^{s_1 t} + B e^{s_2 t}$$</li>
           </ul>
         </div>
         <div class="modal-section">
           <h3>🔹 Initial Conditions</h3>
-          <p>Constants A and B are found using $x(0) = x_0$ and $\dot{x}(0) = v_0$. For an underdamped system, this yields:</p>
+          <p>Constants A and B are found using \( x(0) = x_0 \) and \( \dot{x}(0) = v_0 \). For an underdamped system, this yields:</p>
           <div class="modal-formula">
             $$ A = x_0, \quad B = \frac{v_0 + \zeta\omega_n x_0}{\omega_d} $$
+          </div>
+        </div>
+        
+        <div class="modal-section">
+          <h3>🔹 Current Numerical Substitution</h3>
+          <div id="theory-num-content">
+            <!-- Populated dynamically via app6.js -->
           </div>
         </div>
       </div>

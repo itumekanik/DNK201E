@@ -304,6 +304,70 @@ function updateSolutionCards() {
     UI.stepRoots.innerHTML = rootText;
     UI.stepFunc2.innerHTML = funcText;
     
+    // Theory Modal Numerical Substitution
+    let numHtml = `
+      <p>For the current system parameters:</p>
+      <ul>
+        <li>Mass: \\( m = ${s.m} \\text{ kg} \\)</li>
+        <li>Spring constant: \\( k = ${s.k} \\text{ N/m} \\)</li>
+        <li>Damping coefficient: \\( c = ${s.c} \\text{ N-s/m} \\)</li>
+      </ul>
+      <p>The natural frequency and damping ratio are:</p>
+      <div class="modal-formula">
+        $$ \\omega_n = \\sqrt{\\frac{${s.k}}{${s.m}}} = ${s.wn.toFixed(dec)} \\text{ rad/s} $$
+        $$ \\zeta = \\frac{${s.c}}{2\\sqrt{${s.k} \\cdot ${s.m}}} = ${s.zeta.toFixed(dec)} $$
+      </div>
+    `;
+    
+    if (s.regime === 'underdamped') {
+        numHtml += `
+          <p>Since \\( \\zeta < 1 \\), the system is underdamped. The damped natural frequency is:</p>
+          <div class="modal-formula">
+            $$ \\omega_d = ${s.wn.toFixed(dec)} \\sqrt{1 - ${s.zeta.toFixed(dec)}^2} = ${s.wd.toFixed(dec)} \\text{ rad/s} $$
+          </div>
+          <p>Applying the initial conditions \\( x(0) = ${s.x0} \\) and \\( \\dot{x}(0) = ${s.v0} \\) to find A and B:</p>
+          <div class="modal-formula">
+            $$ A = ${s.x0} $$
+            $$ B = \\frac{${s.v0} + (${s.zeta.toFixed(dec)})(${s.wn.toFixed(dec)})(${s.x0})}{${s.wd.toFixed(dec)}} = ${s.B.toFixed(dec)} $$
+          </div>
+          <p>Final Position Function:</p>
+          <div class="modal-result">
+            $$ x(t) = e^{-${(s.zeta*s.wn).toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) \\right) $$
+          </div>
+        `;
+    } else if (s.regime === 'critical') {
+        numHtml += `
+          <p>Since \\( \\zeta = 1 \\), the system is critically damped. Applying initial conditions:</p>
+          <div class="modal-formula">
+            $$ A = ${s.x0} $$
+            $$ B = ${s.v0} + (${s.wn.toFixed(dec)})(${s.x0}) = ${s.B.toFixed(dec)} $$
+          </div>
+          <p>Final Position Function:</p>
+          <div class="modal-result">
+            $$ x(t) = (${s.A.toFixed(dec)} + ${s.B.toFixed(dec)} t) e^{-${s.wn.toFixed(dec)} t} $$
+          </div>
+        `;
+    } else {
+        numHtml += `
+          <p>Since \\( \\zeta > 1 \\), the system is overdamped. The roots are:</p>
+          <div class="modal-formula">
+            $$ s_1 = ${s.s1.toFixed(dec)}, \\quad s_2 = ${s.s2.toFixed(dec)} $$
+          </div>
+          <p>Applying initial conditions:</p>
+          <div class="modal-formula">
+            $$ A = \\frac{${s.v0} - (${s.s2.toFixed(dec)})(${s.x0})}{${s.s1.toFixed(dec)} - (${s.s2.toFixed(dec)})} = ${s.A.toFixed(dec)} $$
+            $$ B = \\frac{(${s.s1.toFixed(dec)})(${s.x0}) - ${s.v0}}{${s.s1.toFixed(dec)} - (${s.s2.toFixed(dec)})} = ${s.B.toFixed(dec)} $$
+          </div>
+          <p>Final Position Function:</p>
+          <div class="modal-result">
+            $$ x(t) = ${s.A.toFixed(dec)} e^{${s.s1.toFixed(dec)} t} + ${s.B.toFixed(dec)} e^{${s.s2.toFixed(dec)} t} $$
+          </div>
+        `;
+    }
+    
+    let elNumContent = document.getElementById('theory-num-content');
+    if (elNumContent) elNumContent.innerHTML = numHtml;
+    
     if (window.MathJax && MathJax.typesetPromise) {
         MathJax.typesetPromise();
     }
