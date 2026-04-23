@@ -194,7 +194,7 @@
           <p>The roots of the characteristic equation \( s^2 + 2\zeta\omega_n s + \omega_n^2 = 0 \) dictate the nature of the motion:</p>
           <ul>
             <li><b>Underdamped (\( \zeta < 1 \)):</b> Roots are complex conjugate. The system oscillates with exponential decay. 
-                $$x(t) = e^{-\zeta\omega_n t} \left( A \cos(\omega_d t) + B \sin(\omega_d t) \right)$$
+                $$x(t) = e^{-\zeta\omega_n t} \left( A \sin(\omega_d t) + B \cos(\omega_d t) \right)$$
                 where \( \omega_d = \omega_n \sqrt{1 - \zeta^2} \) is the damped natural frequency.</li>
             <li><b>Critically Damped (\( \zeta = 1 \)):</b> Roots are real and repeated. The system returns to equilibrium as fast as possible without oscillating.
                 $$x(t) = (A + Bt) e^{-\omega_n t}$$</li>
@@ -206,7 +206,7 @@
           <h3>🔹 Initial Conditions</h3>
           <p>Constants A and B are found using \( x(0) = x_0 \) and \( \dot{x}(0) = v_0 \). For an underdamped system, this yields:</p>
           <div class="modal-formula">
-            $$ A = x_0, \quad B = \frac{v_0 + \zeta\omega_n x_0}{\omega_d} $$
+            $$ B = x_0, \quad A = \frac{v_0 + \zeta\omega_n x_0}{\omega_d} $$
           </div>
         </div>
         

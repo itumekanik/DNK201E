@@ -77,8 +77,8 @@ function calculateSystem() {
     } else if (zeta < 1) {
         regime = 'underdamped';
         wd = wn * Math.sqrt(1 - zeta * zeta);
-        A = x0;
-        B = (v0 + zeta * wn * x0) / wd;
+        B = x0;
+        A = (v0 + zeta * wn * x0) / wd;
     } else {
         regime = 'overdamped';
         let term = wn * Math.sqrt(zeta * zeta - 1);
@@ -106,12 +106,12 @@ function solvePosition(t) {
         let e = Math.exp(-zeta * wn * t);
         let cw = Math.cos(wd * t);
         let sw = Math.sin(wd * t);
-        x = e * (A * cw + B * sw);
+        x = e * (A * sw + B * cw);
         
-        let dx_trig = -A * wd * sw + B * wd * cw;
+        let dx_trig = A * wd * cw - B * wd * sw;
         v = -zeta * wn * x + e * dx_trig;
         
-        let d2x_trig = -A * wd * wd * cw - B * wd * wd * sw;
+        let d2x_trig = -A * wd * wd * sw - B * wd * wd * cw;
         a = -zeta * wn * v + (-zeta * wn * e * dx_trig) + e * d2x_trig;
     } else {
         // overdamped
@@ -281,8 +281,8 @@ function updateSolutionCards() {
         eqText = `\\( \\ddot{x} + ${(2*s.zeta*s.wn).toFixed(dec)} \\dot{x} + ${(s.wn*s.wn).toFixed(dec)} x = 0 \\)`;
         rootText = `\\( \\omega_d = \\omega_n \\sqrt{1-\\zeta^2} = ${s.wd.toFixed(dec)} \\text{ rad/s} \\)`;
         
-        UI.stepFunc1.innerHTML = `\\( A = x_0 = ${s.A.toFixed(dec)}, \\quad B = \\frac{v_0 + \\zeta\\omega_n x_0}{\\omega_d} = ${s.B.toFixed(dec)} \\)`;
-        funcText = `\\( x(t) = e^{-${d.toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) \\right) \\)`;
+        UI.stepFunc1.innerHTML = `\\( B = x_0 = ${s.B.toFixed(dec)}, \\quad A = \\frac{v_0 + \\zeta\\omega_n x_0}{\\omega_d} = ${s.A.toFixed(dec)} \\)`;
+        funcText = `\\( x(t) = e^{-${d.toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) \\right) \\)`;
     } else if (s.regime === 'critical') {
         regText = `\\( \\zeta = 1 \\implies \\text{Critically Damped} \\)`;
         eqText = `\\( \\ddot{x} + ${(2*s.wn).toFixed(dec)} \\dot{x} + ${(s.wn*s.wn).toFixed(dec)} x = 0 \\)`;
@@ -327,12 +327,12 @@ function updateSolutionCards() {
           </div>
           <p>Applying the initial conditions \\( x(0) = ${s.x0} \\) and \\( \\dot{x}(0) = ${s.v0} \\) to find A and B:</p>
           <div class="modal-formula">
-            $$ A = ${s.x0} $$
-            $$ B = \\frac{${s.v0} + (${s.zeta.toFixed(dec)})(${s.wn.toFixed(dec)})(${s.x0})}{${s.wd.toFixed(dec)}} = ${s.B.toFixed(dec)} $$
+            $$ B = ${s.x0} $$
+            $$ A = \\frac{${s.v0} + (${s.zeta.toFixed(dec)})(${s.wn.toFixed(dec)})(${s.x0})}{${s.wd.toFixed(dec)}} = ${s.A.toFixed(dec)} $$
           </div>
           <p>Final Position Function:</p>
           <div class="modal-result">
-            $$ x(t) = e^{-${(s.zeta*s.wn).toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) \\right) $$
+            $$ x(t) = e^{-${(s.zeta*s.wn).toFixed(dec)} t} \\left( ${s.A.toFixed(dec)} \\sin(${s.wd.toFixed(dec)} t) + ${s.B.toFixed(dec)} \\cos(${s.wd.toFixed(dec)} t) \\right) $$
           </div>
         `;
     } else if (s.regime === 'critical') {
