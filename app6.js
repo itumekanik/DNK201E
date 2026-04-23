@@ -161,7 +161,7 @@ function updateVisuals(t) {
     }
     
     // Spring (yOffset = 10, connecting to left side of cart)
-    let springAttachX = cartX - 30;
+    let springAttachX = cartX - 50;
     UI.springPath.setAttribute('d', drawSpring(springAttachX, 10, 8));
     
     // Damper
@@ -170,11 +170,11 @@ function updateVisuals(t) {
     // Let's position piston relative to cart so rod length is fixed at 120.
     // Piston center connects to rod.
     let rodLength = 120;
-    let pistonX = cartX - 30 - rodLength; 
+    let pistonX = cartX - 50 - rodLength; 
     
     UI.damperPiston.setAttribute('x', pistonX);
     UI.damperRod.setAttribute('x1', pistonX + 8);
-    UI.damperRod.setAttribute('x2', cartX - 30);
+    UI.damperRod.setAttribute('x2', cartX - 50);
     
     // Update labels
     UI.valT.textContent = t.toFixed(2) + " s";
