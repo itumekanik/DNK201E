@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Damped Spring-Mass Oscillator - Animated Physics</title>
+  <link rel="stylesheet" href="style6.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+</head>
+
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1><a href="index.html" style="text-decoration: none; margin-right: 8px;" title="Back to Home">🏠</a>🧲 Damped Spring-Mass Oscillator</h1>
+        <div class="param-inputs">
+          <div class="param-group">
+            <label>m (kg)</label>
+            <input type="number" id="input-m" value="2" step="0.5" min="0.1">
+          </div>
+          <div class="param-group">
+            <label>k (N/m)</label>
+            <input type="number" id="input-k" value="8" step="1" min="0.1">
+          </div>
+          <div class="param-group">
+            <label>c (N-s/m)</label>
+            <input type="number" id="input-c" value="1" step="0.5" min="0">
+          </div>
+          <div class="param-group" style="margin-left: 8px;">
+            <label>x₀ (m)</label>
+            <input type="number" id="input-x0" value="0.1" step="0.05">
+          </div>
+          <div class="param-group">
+            <label>v₀ (m/s)</label>
+            <input type="number" id="input-v0" value="0" step="0.1">
+          </div>
+          <button class="btn btn-apply" id="btn-apply">⟳ Apply</button>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-theory" id="btn-theory">📖 Theory</button>
+        <button class="btn btn-primary" id="btn-play">▶ Play / Pause</button>
+        <button class="btn btn-secondary" id="btn-reset">↺ Reset</button>
+        <input type="range" class="time-slider" id="time-slider" min="0" max="15" step="0.05" value="0"
+          oninput="document.getElementById('slider-val').textContent = parseFloat(this.value).toFixed(2) + ' s'">
+        <span class="slider-label" id="slider-val">0.00 s</span>
+      </div>
+    </div>
+
+    <!-- Middle Row: Sim + Results -->
+    <div class="mid">
+      <div class="card sim-card">
+        <div class="card-title"><span>🎯</span> Simulation</div>
+        <div class="sim-svg-container">
+          <svg id="sim-svg" viewBox="0 0 500 200" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <pattern id="wall-hatch" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 0,10 L 10,0 Z" stroke="#94a3b8" stroke-width="1" />
+              </pattern>
+            </defs>
+            <g id="mechanism" transform="translate(0, 100)">
+              <!-- Floor & Wall -->
+              <rect x="0" y="40" width="500" height="20" fill="url(#wall-hatch)"/>
+              <line x1="0" y1="40" x2="500" y2="40" stroke="#475569" stroke-width="3"/>
+              
+              <rect x="0" y="-80" width="20" height="120" fill="url(#wall-hatch)"/>
+              <line x1="20" y1="-80" x2="20" y2="40" stroke="#475569" stroke-width="3"/>
+              
+              <g id="systemGroup">
+                <!-- Spring -->
+                <path id="spring-path" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                
+                <!-- Damper Outer Cylinder -->
+                <line id="damper-line-wall" x1="20" y1="-25" x2="40" y2="-25" stroke="#94a3b8" stroke-width="3"/>
+                <!-- Cylinder Body -->
+                <path id="damper-cylinder" d="M 40 -35 L 180 -35 M 40 -15 L 180 -15 M 40 -35 L 40 -15 M 180 -35 L 180 -30 M 180 -15 L 180 -20" fill="none" stroke="#475569" stroke-width="2.5"/>
+                
+                <!-- Damper Piston (Rect) -->
+                <rect id="damper-piston" x="130" y="-33" width="8" height="16" fill="#0f172a" rx="1"/>
+                <line id="damper-rod" x1="138" y1="-25" x2="250" y2="-25" stroke="#64748b" stroke-width="3"/>
+
+                <!-- Mass (Cart) -->
+                <g id="cartGroup" transform="translate(280, 0)">
+                  <rect x="-30" y="-40" width="60" height="40" fill="#fde047" stroke="#ca8a04" stroke-width="2" rx="4"/>
+                  <!-- Center of gravity symbol -->
+                  <circle cx="0" cy="-20" r="6" fill="#1e293b"/>
+                  <path d="M 0 -26 L 0 -14 M -6 -20 L 6 -20" stroke="white" stroke-width="1.5"/>
+                  <path d="M 0 -26 A 6 6 0 0 1 6 -20 L 0 -20 Z" fill="white"/>
+                  <path d="M 0 -14 A 6 6 0 0 1 -6 -20 L 0 -20 Z" fill="white"/>
+                  
+                  <!-- Wheels -->
+                  <circle cx="-15" cy="4" r="5" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                  <circle cx="15" cy="4" r="5" fill="#475569" stroke="#1e293b" stroke-width="1.5"/>
+                  
+                  <!-- Coordinate System Origin text -->
+                  <text x="0" y="-55" fill="#1e293b" font-size="12" font-weight="700" text-anchor="middle">m</text>
+                  <!-- Velocity Vector -->
+                  <line id="vec-v" x1="0" y1="0" x2="0" y2="0" stroke="#059669" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+                </g>
+              </g>
+              
+              <!-- Origin Marker -->
+              <line x1="280" y1="50" x2="280" y2="75" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4"/>
+              <text x="280" y="90" fill="#94a3b8" font-size="12" font-family="'JetBrains Mono', monospace" text-anchor="middle">x=0</text>
+            </g>
+            <defs>
+              <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+        <div class="live-data">
+          <div class="data-item">
+            <div class="label">Time (t)</div>
+            <div class="value" id="val-t">0.00 s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">Position x(t)</div>
+            <div class="value" id="val-x" style="color: #059669;">0.100 m</div>
+          </div>
+          <div class="data-item">
+            <div class="label">Velocity v(t)</div>
+            <div class="value" id="val-v">0.000 m/s</div>
+          </div>
+          <div class="data-item">
+            <div class="label">Acceleration a(t)</div>
+            <div class="value" id="val-a">0.000 m/s²</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card graph-card">
+        <div class="card-title"><span>📈</span> x(t) vs Time</div>
+        <svg id="x-graph" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+
+    </div>
+
+    <!-- Bottom: Solution Steps -->
+    <div class="bottom">
+      <div class="step-card">
+        <div class="step-label">Step A</div>
+        <h3>System Frequencies</h3>
+        <div class="formula" id="step-wn"></div>
+        <div class="formula" id="step-zeta"></div>
+        <div class="result" id="step-regime"></div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Step B</div>
+        <h3>Differential Equation</h3>
+        <div class="formula">\( m \ddot{x} + c \dot{x} + k x = 0 \)</div>
+        <div class="formula" id="step-deq"></div>
+        <div class="result" id="step-roots"></div>
+      </div>
+      <div class="step-card">
+        <div class="step-label">Step C</div>
+        <h3>Function of Time x(t)</h3>
+        <div class="formula">Apply initial conditions: \( x(0) = x_0, \dot{x}(0) = v_0 \)</div>
+        <div class="formula" id="step-func1"></div>
+        <div class="result" id="step-func2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theory Modal -->
+  <div class="modal-overlay" id="theory-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📖 Theoretical Solution — Damped Spring-Mass Oscillator</h2>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>🔹 Problem Statement</h3>
+          <p>Determine the position as a function of time for a damped spring-mass oscillator. By using the free body diagram and Newton's second law, we can derive the equation of motion.</p>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 Equation of Motion</h3>
+          <p>The sum of forces acting on the mass (spring force $-kx$ and damping force $-c\dot{x}$) equals $m\ddot{x}$:</p>
+          <div class="modal-formula">
+            $$ m \ddot{x} + c \dot{x} + k x = 0 $$
+          </div>
+          <p>Dividing by mass $m$, we rewrite this in standard form:</p>
+          <div class="modal-formula">
+            $$ \ddot{x} + 2\zeta\omega_n \dot{x} + \omega_n^2 x = 0 $$
+          </div>
+          <p>where $\omega_n = \sqrt{k/m}$ is the natural frequency, and $\zeta = \frac{c}{2\sqrt{km}}$ is the damping ratio. The variable $d = \zeta\omega_n = \frac{c}{2m}$ is often called the exponential decay rate.</p>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 Solution Regimes</h3>
+          <p>The roots of the characteristic equation $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$ dictate the nature of the motion:</p>
+          <ul>
+            <li><b>Underdamped ($\zeta < 1$):</b> Roots are complex conjugate. The system oscillates with exponential decay. 
+                $$x(t) = e^{-\zeta\omega_n t} \left( A \cos(\omega_d t) + B \sin(\omega_d t) \right)$$
+                where $\omega_d = \omega_n \sqrt{1 - \zeta^2}$ is the damped natural frequency.</li>
+            <li><b>Critically Damped ($\zeta = 1$):</b> Roots are real and repeated. The system returns to equilibrium as fast as possible without oscillating.
+                $$x(t) = (A + Bt) e^{-\omega_n t}$$</li>
+            <li><b>Overdamped ($\zeta > 1$):</b> Roots are real and distinct. The system returns to equilibrium slowly without oscillating.
+                $$x(t) = A e^{s_1 t} + B e^{s_2 t}$$</li>
+          </ul>
+        </div>
+        <div class="modal-section">
+          <h3>🔹 Initial Conditions</h3>
+          <p>Constants A and B are found using $x(0) = x_0$ and $\dot{x}(0) = v_0$. For an underdamped system, this yields:</p>
+          <div class="modal-formula">
+            $$ A = x_0, \quad B = \frac{v_0 + \zeta\omega_n x_0}{\omega_d} $$
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="app6.js"></script>
+</body>
+
+</html>
